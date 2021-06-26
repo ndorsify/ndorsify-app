@@ -1,0 +1,28 @@
+.input-text {
+  font-family: "Nunito Sans", "Helvetica Neue", Helvetica, Arial, sans-serif;
+  border: 1px solid #333;
+  border-radius: 3em;
+  cursor: pointer;
+  display: inline-block;
+  line-height: 1;
+  outline: none;
+}
+.input-text--small {
+  font-size: 12px;
+  padding: 10px 16px;
+}
+.input-text--medium {
+  font-size: 14px;
+  padding: 11px 20px;
+}
+.input-text--large {
+  font-size: 16px;
+  padding: 12px 24px;
+}
+.input-text--xlarge {
+  font-size: 14px;
+  padding: 11px 20px;
+  min-width: 215px;
+  height: 20px;
+  text-align: center;
+}
