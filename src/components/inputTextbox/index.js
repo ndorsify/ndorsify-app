@@ -5,7 +5,7 @@ import "./inputBox.css";
 /**
  * Primary UI component for user interaction
  */
-export const InputBox = ({ size, placeHolder, ...props }) => {
+export const InputBox = ({ size, placeHolder, color, ...props }) => {
   //const borderCustom = border ? "border-without-bgColor" : "borderLess";
   return (
     <input
@@ -13,6 +13,7 @@ export const InputBox = ({ size, placeHolder, ...props }) => {
       placeholder={placeHolder}
       className={["input-text", `input-text--${size}`].join(" ")}
       /* style={
+        color ? { border: `1px solid ${color}` } : { border: `1px solid #000` }
       } */
       {...props}
     ></input>
@@ -29,6 +30,7 @@ InputBox.propTypes = {
    */
   onClick: PropTypes.func,
   placeHolder: PropTypes.string.isRequired,
+  color: PropTypes.string,
   /**
    * Optional Tooltip handler
    */

@@ -2,20 +2,8 @@
   font-family: "Nunito Sans", "Helvetica Neue", Helvetica, Arial, sans-serif;
   font-weight: 700;
   border: 0;
-  border-radius: 3em;
+  border-radius: 14px;
   cursor: pointer;
-  display: inline-block;
-  line-height: 1;
-}
-.button--primary {
-  color: white;
-  background-color: #1ea7fd;
-}
-.button--secondary {
-  color: #333;
-  background-color: transparent;
-  border-color: #1ea7fd;
-  border: 1px solid;
 }
 .button--tooltip {
   color: #333;
@@ -37,7 +25,7 @@
 .button--xlarge {
   font-size: 14px;
   padding: 11px 20px;
-  min-width: 250px;
+  min-width: 290px;
   height: 40px;
   text-align: center;
 }
@@ -51,6 +39,7 @@
 .button img {
   width: 18px;
   height: 18px;
-  margin: -4px 8px;
+  margin: -3px 0px;
   margin-left: 0px;
+  float: left;
 }

@@ -6,14 +6,20 @@ import "./button.css";
  * Primary UI component for user interaction
  */
 export const Button = ({ primary, color, size, label, icon, ...props }) => {
-  const mode = primary ? "button--primary" : "button--secondary";
+  //const mode = primary ? "button--primary" : "button--secondary";
   //const borderCustom = border ? "border-without-bgColor" : "borderLess";
   return (
     <button
       type="button"
-      className={["button", `button--${size}`, mode].join(" ")}
+      className={["button", `button--${size}`].join(" ")}
       style={
-        color && primary ? { backgroundColor: color } : { borderColor: color }
+        color && primary
+          ? { backgroundColor: color, color: "white" }
+          : {
+              border: `1px solid ${color}`,
+              color: `${color}`,
+              backgroundColor: "transparent",
+            }
       }
       {...props}
     >
