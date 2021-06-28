@@ -17,6 +17,9 @@ function SignIn() {
       <div style={{ padding: "5px" }}>
         <Button color="#FF914D" primary size="xlarge" label="Sign In" />
       </div>
+      <div>
+        <p style={{ fontSize: "13px", color: "#FF914D" }}>Forgot Password?</p>
+      </div>
       <div style={{ paddingTop: "5%" }}>
         <div style={{ padding: "5px" }}>
           <Button
