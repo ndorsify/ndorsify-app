@@ -1,39 +1,39 @@
-import React from "react";
-import "./login.css";
-import { Button } from "../../components/button";
-import logo from "../../assets/siteLogo.png";
-import SignIn from "../../contents/SignIn";
-import SignUp from "../../contents/SignUp";
+import React from 'react'
+import './login.css'
+import { Button } from '../../components/common/button'
+import logo from '../../assets/siteLogo.png'
+import SignIn from '../../components/SignIn'
+import SignUp from '../../components/SignUp'
 
 class Login extends React.Component {
   constructor(props) {
-    super(props);
+    super(props)
     this.state = {
-      isSignIn: true,
-    };
+      isSignIn: true
+    }
   }
   handleOnClickSignIn = () => {
     this.setState({
-      isSignIn: true,
-    });
-  };
+      isSignIn: true
+    })
+  }
   handleOnClickSignUp = () => {
     this.setState({
-      isSignIn: false,
-    });
-  };
+      isSignIn: false
+    })
+  }
   render() {
     return (
       <div className="login-Outer-Wrapper">
-        <div style={{ paddingBottom: "1%" }}>
-          <div style={{ float: "left", width: "5%" }}>
+        <div style={{ paddingBottom: '1%' }}>
+          <div style={{ float: 'left', width: '5%' }}>
             <img
               src={logo}
               alt="Welcome to Ndorsify"
-              style={{ width: "100%" }}
+              style={{ width: '100%' }}
             />
           </div>
-          <div style={{ float: "right" }}>
+          <div style={{ float: 'right' }}>
             <Button
               color="#FF914D"
               primary={false}
@@ -43,8 +43,8 @@ class Login extends React.Component {
           </div>
         </div>
         <div className="login-Inner-Wrapper">
-          <div style={{ paddingBottom: "3%" }}>
-            <span style={{ padding: "2%" }}>
+          <div style={{ paddingBottom: '3%' }}>
+            <span style={{ padding: '2%' }}>
               <Button
                 color="#FF914D"
                 primary={this.state.isSignIn}
@@ -53,7 +53,7 @@ class Login extends React.Component {
                 onClick={this.handleOnClickSignIn}
               />
             </span>
-            <span style={{ padding: "2%" }}>
+            <span style={{ padding: '2%' }}>
               <Button
                 color="#FF914D"
                 primary={!this.state.isSignIn}
@@ -66,7 +66,7 @@ class Login extends React.Component {
           {this.state.isSignIn ? <SignIn /> : <SignUp />}
         </div>
       </div>
-    );
+    )
   }
 }
-export default Login;
+export default Login

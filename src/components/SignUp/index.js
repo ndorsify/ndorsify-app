@@ -1,31 +1,31 @@
-import { Button } from "../../components/button";
-import { InputBox } from "../../components/inputTextbox";
-import "./signUp.css";
-import googleLogo from "../../assets/google-logo.png";
-import fbLogo from "../../assets/fb-logo.jpg";
-import twitterLogo from "../../assets/twitter-logo.png";
+import { Button } from '../common/button'
+import { InputBox } from '../common/inputTextbox'
+import './signUp.css'
+import googleLogo from '../../assets/google-logo.png'
+import fbLogo from '../../assets/fb-logo.jpg'
+import twitterLogo from '../../assets/twitter-logo.png'
 
 function SignUp() {
   return (
     <div>
-      <div style={{ padding: "5px" }}>
+      <div style={{ padding: '5px' }}>
         <InputBox placeHolder="Enter username" size="xlarge" color="#C4C4C4" />
       </div>
-      <div style={{ padding: "5px" }}>
+      <div style={{ padding: '5px' }}>
         <InputBox placeHolder="New password" size="xlarge" color="#C4C4C4" />
       </div>
-      <div style={{ padding: "5px" }}>
+      <div style={{ padding: '5px' }}>
         <InputBox
           placeHolder="Confirm password"
           size="xlarge"
           color="#C4C4C4"
         />
       </div>
-      <div style={{ padding: "5px" }}>
+      <div style={{ padding: '5px' }}>
         <Button color="#FF914D" primary size="xlarge" label="Sign Up" />
       </div>
-      <div style={{ paddingTop: "5%" }}>
-        <div style={{ padding: "5px" }}>
+      <div style={{ paddingTop: '5%' }}>
+        <div style={{ padding: '5px' }}>
           <Button
             color="#FF5F5F"
             primary
@@ -34,7 +34,7 @@ function SignUp() {
             icon={googleLogo}
           />
         </div>
-        <div style={{ padding: "5px" }}>
+        <div style={{ padding: '5px' }}>
           <Button
             color="#2972FF"
             primary
@@ -43,7 +43,7 @@ function SignUp() {
             icon={fbLogo}
           />
         </div>
-        <div style={{ padding: "5px" }}>
+        <div style={{ padding: '5px' }}>
           <Button
             color="#26A6EE"
             primary
@@ -54,6 +54,6 @@ function SignUp() {
         </div>
       </div>
     </div>
-  );
+  )
 }
-export default SignUp;
+export default SignUp

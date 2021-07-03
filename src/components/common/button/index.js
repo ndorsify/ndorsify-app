@@ -1,6 +1,6 @@
-import React from "react";
-import PropTypes from "prop-types";
-import "./button.css";
+import React from 'react'
+import PropTypes from 'prop-types'
+import './button.css'
 
 /**
  * Primary UI component for user interaction
@@ -11,14 +11,14 @@ export const Button = ({ primary, color, size, label, icon, ...props }) => {
   return (
     <button
       type="button"
-      className={["button", `button--${size}`].join(" ")}
+      className={['button', `button--${size}`].join(' ')}
       style={
         color && primary
-          ? { backgroundColor: color, color: "white" }
+          ? { backgroundColor: color, color: 'white' }
           : {
               border: `1px solid ${color}`,
               color: `${color}`,
-              backgroundColor: "transparent",
+              backgroundColor: 'transparent'
             }
       }
       {...props}
@@ -26,8 +26,8 @@ export const Button = ({ primary, color, size, label, icon, ...props }) => {
       {icon && <img src={icon} alt="icon" />}
       {label}
     </button>
-  );
-};
+  )
+}
 
 Button.propTypes = {
   /**
@@ -41,7 +41,7 @@ Button.propTypes = {
   /**
    * How large should the button be?
    */
-  size: PropTypes.oneOf(["small", "medium", "large", "xlarge"]),
+  size: PropTypes.oneOf(['small', 'medium', 'large', 'xlarge']),
   /**
    * Button contents
    */
@@ -49,15 +49,15 @@ Button.propTypes = {
   /**
    * Optional click handler
    */
-  onClick: PropTypes.func,
+  onClick: PropTypes.func
   /**
    * Optional Tooltip handler
    */
-};
+}
 
 Button.defaultProps = {
   color: null,
   primary: false,
-  size: "medium",
-  onClick: undefined,
-};
+  size: 'medium',
+  onClick: undefined
+}
