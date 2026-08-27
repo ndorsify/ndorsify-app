@@ -13,6 +13,8 @@ import storage from 'redux-persist/lib/storage'
 
 import authReducer from '../features/auth/authSlice'
 import { authApi } from '../features/auth/authApi'
+import { discoveryApi } from '../features/discovery/discoveryApi'
+import { messagingApi } from '../features/messaging/messagingApi'
 import { onboardingApi } from '../features/onboarding/onboardingApi'
 import { profileApi } from '../features/profile/profileApi'
 
@@ -27,7 +29,9 @@ const rootReducer = combineReducers({
   auth: persistReducer(authPersistConfig, authReducer),
   [authApi.reducerPath]: authApi.reducer,
   [profileApi.reducerPath]: profileApi.reducer,
-  [onboardingApi.reducerPath]: onboardingApi.reducer
+  [onboardingApi.reducerPath]: onboardingApi.reducer,
+  [discoveryApi.reducerPath]: discoveryApi.reducer,
+  [messagingApi.reducerPath]: messagingApi.reducer
 })
 
 export const store = configureStore({
@@ -37,7 +41,13 @@ export const store = configureStore({
       serializableCheck: {
         ignoredActions: [FLUSH, REHYDRATE, PAUSE, PERSIST, PURGE, REGISTER]
       }
-    }).concat(authApi.middleware, profileApi.middleware, onboardingApi.middleware)
+    }).concat(
+      authApi.middleware,
+      profileApi.middleware,
+      onboardingApi.middleware,
+      discoveryApi.middleware,
+      messagingApi.middleware
+    )
 })
 
 export const persistor = persistStore(store)

@@ -7,6 +7,9 @@ import RegisterPage from './features/auth/RegisterPage'
 import HomePage from './features/home/HomePage'
 import OnboardingPage from './features/onboarding/OnboardingPage'
 import ProfileEditPage from './features/profile/ProfileEditPage'
+import DiscoverPage from './features/discovery/DiscoverPage'
+import InboxPage from './features/messaging/InboxPage'
+import ThreadPage from './features/messaging/ThreadPage'
 
 function App() {
   return (
@@ -21,6 +24,9 @@ function App() {
           <Route path={PAGE_ROUTES.HOME} element={<HomePage />} />
           <Route path={PAGE_ROUTES.ONBOARDING} element={<OnboardingPage />} />
           <Route path={PAGE_ROUTES.PROFILE_EDIT} element={<ProfileEditPage />} />
+          <Route path={PAGE_ROUTES.DISCOVER} element={<DiscoverPage />} />
+          <Route path={PAGE_ROUTES.MESSAGES} element={<InboxPage />} />
+          <Route path={PAGE_ROUTES.MESSAGE_THREAD} element={<ThreadPage />} />
         </Route>
 
         <Route path="*" element={<Navigate to={PAGE_ROUTES.HOME} replace />} />
