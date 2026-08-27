@@ -1,69 +1,57 @@
-import { useDispatch, useSelector } from 'react-redux'
-import { useNavigate } from 'react-router-dom'
+import { useSelector } from 'react-redux'
+import { Link } from 'react-router-dom'
 
-import { Button } from '../../components/common/button'
+import '../profile/profile.css'
+import AppNav from '../../components/common/AppNav'
 import { PAGE_ROUTES } from '../../routes'
-import {
-  loggedOut,
-  selectRefreshToken,
-  selectUser
-} from '../auth/authSlice'
-import { useLogoutMutation, useMeQuery } from '../auth/authApi'
-
-const ORANGE = '#FF914D'
+import { selectUser } from '../auth/authSlice'
+import { useMeQuery } from '../auth/authApi'
 
 export default function HomePage() {
-  const navigate = useNavigate()
-  const dispatch = useDispatch()
-  const refreshToken = useSelector(selectRefreshToken)
   const cachedUser = useSelector(selectUser)
-
   // Confirms the token works end to end against users-service.
   const { data, isLoading, isError } = useMeQuery()
-  const [logout] = useLogoutMutation()
-
   const user = data || cachedUser
-
-  const onLogout = async () => {
-    try {
-      if (refreshToken) await logout({ refresh_token: refreshToken }).unwrap()
-    } catch {
-      /* log out locally regardless */
-    }
-    dispatch(loggedOut())
-    navigate(PAGE_ROUTES.LOGIN, { replace: true })
-  }
+  const isBrand = user?.role === 'brand'
 
   return (
-    <div style={{ maxWidth: 560, margin: '10vh auto', padding: '0 20px' }}>
-      <h1 style={{ color: '#2b2b2b' }}>Welcome to Ndorsify</h1>
-      {isLoading && <p>Loading your account…</p>}
-      {isError && (
-        <p className="auth-error" role="alert">
-          Could not load your account.
-        </p>
-      )}
-      {user && (
-        <div style={{ margin: '16px 0', lineHeight: 1.8 }}>
-          <div>
-            <strong>Email:</strong> {user.email}
+    <>
+      <AppNav />
+      <div className="page">
+        <h1>Welcome to Ndorsify</h1>
+        {isLoading && <p className="subtle">Loading your account…</p>}
+        {isError && (
+          <p className="form-error" role="alert">
+            Could not load your account.
+          </p>
+        )}
+        {user && (
+          <div style={{ margin: '12px 0 24px', lineHeight: 1.9 }}>
+            <div>
+              <strong>Email:</strong> {user.email}
+            </div>
+            <div>
+              <strong>Role:</strong> {user.role}
+            </div>
+            <div>
+              <strong>Email verified:</strong>{' '}
+              {user.email_verified ? 'yes' : 'no'}
+            </div>
           </div>
-          <div>
-            <strong>Role:</strong> {user.role}
-          </div>
-          <div>
-            <strong>Email verified:</strong>{' '}
-            {user.email_verified ? 'yes' : 'no'}
-          </div>
-        </div>
-      )}
-      <Button
-        color={ORANGE}
-        primary
-        size="large"
-        label="Log out"
-        onClick={onLogout}
-      />
-    </div>
+        )}
+
+        <h3 style={{ color: 'var(--ink)' }}>Next steps</h3>
+        <ul style={{ lineHeight: 2 }}>
+          <li>
+            <Link to={PAGE_ROUTES.ONBOARDING}>Complete onboarding</Link>
+          </li>
+          <li>
+            <Link to={PAGE_ROUTES.PROFILE_EDIT}>
+              {isBrand ? 'Set up your brand profile' : 'Complete your creator profile'}
+            </Link>
+          </li>
+        </ul>
+      </div>
+    </>
   )
 }
