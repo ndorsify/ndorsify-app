@@ -1,10 +1,15 @@
-//API and URL routes
+// API and page route constants.
 const API_ROUTES = {
   API_NAME: '/'
 }
 
 const PAGE_ROUTES = {
-  HOME: '/'
+  HOME: '/',
+  LOGIN: '/login',
+  REGISTER: '/register',
+  FORGOT_PASSWORD: '/forgot-password',
+  RESET_PASSWORD: '/reset-password',
+  VERIFY_EMAIL: '/verify-email'
 }
 
 export { API_ROUTES, PAGE_ROUTES }
