@@ -14,7 +14,10 @@ const PAGE_ROUTES = {
   PROFILE_EDIT: '/profile/edit',
   DISCOVER: '/discover',
   MESSAGES: '/messages',
-  MESSAGE_THREAD: '/messages/:id'
+  MESSAGE_THREAD: '/messages/:id',
+  CAMPAIGNS: '/campaigns',
+  MARKETPLACE: '/marketplace',
+  INVITATIONS: '/invitations'
 }
 
 export { API_ROUTES, PAGE_ROUTES }
