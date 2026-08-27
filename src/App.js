@@ -10,6 +10,9 @@ import ProfileEditPage from './features/profile/ProfileEditPage'
 import DiscoverPage from './features/discovery/DiscoverPage'
 import InboxPage from './features/messaging/InboxPage'
 import ThreadPage from './features/messaging/ThreadPage'
+import CampaignsPage from './features/campaigns/CampaignsPage'
+import MarketplacePage from './features/campaigns/MarketplacePage'
+import InvitationsPage from './features/campaigns/InvitationsPage'
 
 function App() {
   return (
@@ -27,6 +30,9 @@ function App() {
           <Route path={PAGE_ROUTES.DISCOVER} element={<DiscoverPage />} />
           <Route path={PAGE_ROUTES.MESSAGES} element={<InboxPage />} />
           <Route path={PAGE_ROUTES.MESSAGE_THREAD} element={<ThreadPage />} />
+          <Route path={PAGE_ROUTES.CAMPAIGNS} element={<CampaignsPage />} />
+          <Route path={PAGE_ROUTES.MARKETPLACE} element={<MarketplacePage />} />
+          <Route path={PAGE_ROUTES.INVITATIONS} element={<InvitationsPage />} />
         </Route>
 
         <Route path="*" element={<Navigate to={PAGE_ROUTES.HOME} replace />} />

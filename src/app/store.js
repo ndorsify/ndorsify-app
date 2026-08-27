@@ -13,6 +13,7 @@ import storage from 'redux-persist/lib/storage'
 
 import authReducer from '../features/auth/authSlice'
 import { authApi } from '../features/auth/authApi'
+import { campaignApi } from '../features/campaigns/campaignApi'
 import { discoveryApi } from '../features/discovery/discoveryApi'
 import { messagingApi } from '../features/messaging/messagingApi'
 import { onboardingApi } from '../features/onboarding/onboardingApi'
@@ -31,7 +32,8 @@ const rootReducer = combineReducers({
   [profileApi.reducerPath]: profileApi.reducer,
   [onboardingApi.reducerPath]: onboardingApi.reducer,
   [discoveryApi.reducerPath]: discoveryApi.reducer,
-  [messagingApi.reducerPath]: messagingApi.reducer
+  [messagingApi.reducerPath]: messagingApi.reducer,
+  [campaignApi.reducerPath]: campaignApi.reducer
 })
 
 export const store = configureStore({
@@ -46,7 +48,8 @@ export const store = configureStore({
       profileApi.middleware,
       onboardingApi.middleware,
       discoveryApi.middleware,
-      messagingApi.middleware
+      messagingApi.middleware,
+      campaignApi.middleware
     )
 })
 

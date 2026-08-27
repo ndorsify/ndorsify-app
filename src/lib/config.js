@@ -8,5 +8,6 @@ export const SERVICE_URLS = {
   profile: env.REACT_APP_PROFILE_URL || 'http://localhost:6060',
   messaging: env.REACT_APP_MESSAGING_URL || 'http://localhost:3000',
   discovery: env.REACT_APP_DISCOVERY_URL || 'http://localhost:9000',
-  dynamicContent: env.REACT_APP_DYNAMIC_CONTENT_URL || 'http://localhost:5000'
+  dynamicContent: env.REACT_APP_DYNAMIC_CONTENT_URL || 'http://localhost:5000',
+  campaign: env.REACT_APP_CAMPAIGN_URL || 'http://localhost:2000'
 }

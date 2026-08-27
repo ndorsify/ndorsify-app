@@ -1,0 +1,93 @@
+.campaign-card {
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--surface);
+  padding: 14px 16px;
+  margin-bottom: 12px;
+}
+
+.campaign-card h3 {
+  margin: 0 0 4px;
+  color: var(--ink);
+  font-size: 1.05rem;
+}
+
+.campaign-card .meta {
+  font-size: 0.85rem;
+  color: var(--ink-soft);
+}
+
+.badge {
+  display: inline-block;
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-weight: 600;
+}
+.badge.draft { background: #f0ece4; color: #7a6f5f; }
+.badge.open { background: #e2f3e6; color: #2e7d46; }
+.badge.closed { background: #f3e2e2; color: #b23b3b; }
+.badge.archived { background: #eee; color: #777; }
+.badge.pending { background: #fdeede; color: #b5730e; }
+.badge.accepted { background: #e2f3e6; color: #2e7d46; }
+.badge.declined, .badge.rejected { background: #f3e2e2; color: #b23b3b; }
+.badge.submitted { background: #e6eef7; color: #2b62c0; }
+
+.row-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-top: 10px;
+  align-items: center;
+}
+
+.sub-panel {
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid var(--line);
+}
+
+.app-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--line);
+  font-size: 0.9rem;
+}
+.app-row:last-child { border-bottom: none; }
+
+.inline-form {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  flex-wrap: wrap;
+  margin-top: 8px;
+}
+.inline-form input,
+.campaign-form input,
+.campaign-form textarea {
+  padding: 8px 10px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--surface);
+  color: var(--ink);
+  font: inherit;
+}
+
+.campaign-form {
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--surface);
+  padding: 16px;
+  margin-bottom: 20px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+.campaign-form .full { grid-column: 1 / -1; }
+.campaign-form input,
+.campaign-form textarea { width: 100%; box-sizing: border-box; }
