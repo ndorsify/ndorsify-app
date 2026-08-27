@@ -1,0 +1,82 @@
+.page {
+  max-width: 640px;
+  margin: 24px auto;
+  padding: 0 20px 60px;
+}
+
+.page h1 {
+  color: var(--ink);
+  font-size: 1.5rem;
+  margin: 8px 0 4px;
+}
+
+.page .subtle {
+  color: var(--ink-soft);
+  margin: 0 0 20px;
+  font-size: 0.95rem;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 16px;
+}
+
+.field label {
+  font-size: 0.85rem;
+  color: var(--ink-soft);
+  font-weight: 600;
+}
+
+.field input,
+.field textarea {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 10px 12px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--surface);
+  color: var(--ink);
+  font: inherit;
+}
+
+.field textarea {
+  min-height: 90px;
+  resize: vertical;
+}
+
+.completion {
+  margin: 4px 0 20px;
+}
+
+.completion-label {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.85rem;
+  color: var(--ink-soft);
+  margin-bottom: 6px;
+}
+
+.completion-track {
+  height: 8px;
+  background: var(--line);
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.completion-fill {
+  height: 100%;
+  background: var(--accent);
+  transition: width 0.3s ease;
+}
+
+.form-error {
+  color: #d0342c;
+  font-size: 0.9rem;
+}
+
+.form-ok {
+  color: #2e7d46;
+  font-size: 0.9rem;
+}

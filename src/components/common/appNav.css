@@ -1,0 +1,41 @@
+.appnav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 20px;
+  background: var(--surface);
+  border-bottom: 1px solid var(--line);
+}
+
+.appnav-brand img {
+  height: 32px;
+  width: auto;
+  display: block;
+}
+
+.appnav-links {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+}
+
+.appnav-link {
+  text-decoration: none;
+  color: var(--ink-soft);
+  font-size: 0.95rem;
+}
+
+.appnav-link.active {
+  color: var(--accent);
+  font-weight: 600;
+}
+
+.appnav-logout {
+  border: 1px solid var(--line);
+  background: transparent;
+  color: var(--ink-soft);
+  padding: 6px 12px;
+  border-radius: 999px;
+  cursor: pointer;
+  font-size: 0.9rem;
+}

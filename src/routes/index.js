@@ -9,7 +9,9 @@ const PAGE_ROUTES = {
   REGISTER: '/register',
   FORGOT_PASSWORD: '/forgot-password',
   RESET_PASSWORD: '/reset-password',
-  VERIFY_EMAIL: '/verify-email'
+  VERIFY_EMAIL: '/verify-email',
+  ONBOARDING: '/onboarding',
+  PROFILE_EDIT: '/profile/edit'
 }
 
 export { API_ROUTES, PAGE_ROUTES }

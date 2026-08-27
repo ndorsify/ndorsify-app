@@ -13,6 +13,8 @@ import storage from 'redux-persist/lib/storage'
 
 import authReducer from '../features/auth/authSlice'
 import { authApi } from '../features/auth/authApi'
+import { onboardingApi } from '../features/onboarding/onboardingApi'
+import { profileApi } from '../features/profile/profileApi'
 
 // Persist only the refresh token + user; the access token stays in memory.
 const authPersistConfig = {
@@ -23,7 +25,9 @@ const authPersistConfig = {
 
 const rootReducer = combineReducers({
   auth: persistReducer(authPersistConfig, authReducer),
-  [authApi.reducerPath]: authApi.reducer
+  [authApi.reducerPath]: authApi.reducer,
+  [profileApi.reducerPath]: profileApi.reducer,
+  [onboardingApi.reducerPath]: onboardingApi.reducer
 })
 
 export const store = configureStore({
@@ -33,7 +37,7 @@ export const store = configureStore({
       serializableCheck: {
         ignoredActions: [FLUSH, REHYDRATE, PAUSE, PERSIST, PURGE, REGISTER]
       }
-    }).concat(authApi.middleware)
+    }).concat(authApi.middleware, profileApi.middleware, onboardingApi.middleware)
 })
 
 export const persistor = persistStore(store)
