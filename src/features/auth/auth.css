@@ -1,0 +1,57 @@
+.auth-wrapper {
+  max-width: 380px;
+  margin: 8vh auto;
+  padding: 0 20px;
+  text-align: center;
+  font-family: inherit;
+}
+
+.auth-logo {
+  width: 120px;
+  height: auto;
+  margin-bottom: 8px;
+}
+
+.auth-wrapper h1 {
+  font-size: 1.6rem;
+  margin: 8px 0 20px;
+  color: #2b2b2b;
+}
+
+.auth-form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  align-items: stretch;
+}
+
+.auth-form .input-text {
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.auth-error {
+  color: #d0342c;
+  font-size: 0.9rem;
+  margin: 0;
+}
+
+.auth-role {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+}
+
+.auth-role button {
+  flex: 1;
+}
+
+.auth-links {
+  margin-top: 16px;
+  font-size: 0.9rem;
+}
+
+.auth-links a {
+  color: #ff914d;
+  text-decoration: none;
+}
