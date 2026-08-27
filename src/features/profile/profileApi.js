@@ -3,7 +3,7 @@ import { createApi } from '@reduxjs/toolkit/query/react'
 import { makeBaseQueryWithReauth } from '../../lib/baseQuery'
 import { SERVICE_URLS } from '../../lib/config'
 
-// Profile endpoints on profile-service (:6000).
+// Profile endpoints on profile-service (:6060).
 export const profileApi = createApi({
   reducerPath: 'profileApi',
   baseQuery: makeBaseQueryWithReauth(SERVICE_URLS.profile),
