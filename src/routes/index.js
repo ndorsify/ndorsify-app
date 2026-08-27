@@ -11,7 +11,10 @@ const PAGE_ROUTES = {
   RESET_PASSWORD: '/reset-password',
   VERIFY_EMAIL: '/verify-email',
   ONBOARDING: '/onboarding',
-  PROFILE_EDIT: '/profile/edit'
+  PROFILE_EDIT: '/profile/edit',
+  DISCOVER: '/discover',
+  MESSAGES: '/messages',
+  MESSAGE_THREAD: '/messages/:id'
 }
 
 export { API_ROUTES, PAGE_ROUTES }

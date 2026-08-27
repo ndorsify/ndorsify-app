@@ -3,7 +3,11 @@ import { Link, useLocation, useNavigate } from 'react-router-dom'
 
 import logo from '../../assets/siteLogo.png'
 import { PAGE_ROUTES } from '../../routes'
-import { loggedOut, selectRefreshToken } from '../../features/auth/authSlice'
+import {
+  loggedOut,
+  selectRefreshToken,
+  selectUser
+} from '../../features/auth/authSlice'
 import { useLogoutMutation } from '../../features/auth/authApi'
 import './appNav.css'
 
@@ -13,6 +17,7 @@ export default function AppNav() {
   const dispatch = useDispatch()
   const location = useLocation()
   const refreshToken = useSelector(selectRefreshToken)
+  const isBrand = useSelector(selectUser)?.role === 'brand'
   const [logout] = useLogoutMutation()
 
   const onLogout = async () => {
@@ -41,7 +46,8 @@ export default function AppNav() {
       </Link>
       <div className="appnav-links">
         {link(PAGE_ROUTES.HOME, 'Home')}
-        {link(PAGE_ROUTES.ONBOARDING, 'Onboarding')}
+        {isBrand && link(PAGE_ROUTES.DISCOVER, 'Discover')}
+        {link(PAGE_ROUTES.MESSAGES, 'Messages')}
         {link(PAGE_ROUTES.PROFILE_EDIT, 'Profile')}
         <button type="button" className="appnav-logout" onClick={onLogout}>
           Log out
