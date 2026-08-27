@@ -1,0 +1,32 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "18"
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Test
+        run: npm test
+        env:
+          CI: "true"
+
+      - name: Build
+        run: npm run build
+        env:
+          # react-scripts 4 on modern Node needs the legacy OpenSSL provider.
+          NODE_OPTIONS: --openssl-legacy-provider
+          CI: "false"
