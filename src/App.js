@@ -13,6 +13,7 @@ import ThreadPage from './features/messaging/ThreadPage'
 import CampaignsPage from './features/campaigns/CampaignsPage'
 import MarketplacePage from './features/campaigns/MarketplacePage'
 import InvitationsPage from './features/campaigns/InvitationsPage'
+import CollaborationsPage from './features/collaborations/CollaborationsPage'
 
 function App() {
   return (
@@ -33,6 +34,7 @@ function App() {
           <Route path={PAGE_ROUTES.CAMPAIGNS} element={<CampaignsPage />} />
           <Route path={PAGE_ROUTES.MARKETPLACE} element={<MarketplacePage />} />
           <Route path={PAGE_ROUTES.INVITATIONS} element={<InvitationsPage />} />
+          <Route path={PAGE_ROUTES.COLLABORATIONS} element={<CollaborationsPage />} />
         </Route>
 
         <Route path="*" element={<Navigate to={PAGE_ROUTES.HOME} replace />} />
