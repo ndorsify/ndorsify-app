@@ -17,7 +17,8 @@ const PAGE_ROUTES = {
   MESSAGE_THREAD: '/messages/:id',
   CAMPAIGNS: '/campaigns',
   MARKETPLACE: '/marketplace',
-  INVITATIONS: '/invitations'
+  INVITATIONS: '/invitations',
+  COLLABORATIONS: '/collaborations-board'
 }
 
 export { API_ROUTES, PAGE_ROUTES }

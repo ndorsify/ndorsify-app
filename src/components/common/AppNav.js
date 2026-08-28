@@ -50,6 +50,7 @@ export default function AppNav() {
         {isBrand && link(PAGE_ROUTES.DISCOVER, 'Discover')}
         {!isBrand && link(PAGE_ROUTES.MARKETPLACE, 'Marketplace')}
         {!isBrand && link(PAGE_ROUTES.INVITATIONS, 'Invitations')}
+        {link(PAGE_ROUTES.COLLABORATIONS, 'Work')}
         {link(PAGE_ROUTES.MESSAGES, 'Messages')}
         {link(PAGE_ROUTES.PROFILE_EDIT, 'Profile')}
         <button type="button" className="appnav-logout" onClick={onLogout}>

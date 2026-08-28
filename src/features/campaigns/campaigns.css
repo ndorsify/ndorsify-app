@@ -34,6 +34,11 @@
 .badge.accepted { background: #e2f3e6; color: #2e7d46; }
 .badge.declined, .badge.rejected { background: #f3e2e2; color: #b23b3b; }
 .badge.submitted { background: #e6eef7; color: #2b62c0; }
+.badge.todo { background: #f0ece4; color: #7a6f5f; }
+.badge.in_progress { background: #e6eef7; color: #2b62c0; }
+.badge.changes_requested { background: #fdeede; color: #b5730e; }
+.badge.approved { background: #e2f3e6; color: #2e7d46; }
+.badge.live { background: #d8f0de; color: #1f7a34; }
 
 .row-actions {
   display: flex;
