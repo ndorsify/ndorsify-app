@@ -65,12 +65,119 @@ function Applications({ campaignId }) {
   )
 }
 
+function CampaignDetails({ campaign }) {
+  const c = campaign
+  const audience = c.target_audience || {}
+  const hasAudience =
+    (audience.niches || []).length > 0 ||
+    (audience.platforms || []).length > 0 ||
+    audience.follower_range?.min ||
+    audience.follower_range?.max ||
+    (audience.locations || []).length > 0 ||
+    audience.min_engagement ||
+    audience.notes
+  return (
+    <div className="nd-stack" style={{ gap: 14 }}>
+      <div>
+        <div className="nd-h3" style={{ marginBottom: 4 }}>
+          Objective
+        </div>
+        <p className="nd-ink2" style={{ fontSize: '0.85rem' }}>
+          {c.objective || 'No objective set.'}
+        </p>
+      </div>
+
+      <div>
+        <div className="nd-h3" style={{ marginBottom: 6 }}>
+          Deliverables
+        </div>
+        {(c.deliverables || []).length === 0 ? (
+          <p className="nd-muted" style={{ fontSize: '0.82rem' }}>
+            No deliverables yet.
+          </p>
+        ) : (
+          <div className="nd-stack" style={{ gap: 4 }}>
+            {c.deliverables.map((d, i) => (
+              <div
+                key={i}
+                className="nd-row"
+                style={{ gap: 10, fontSize: '0.85rem' }}
+              >
+                <span className="nd-mono nd-ink2">{d.quantity}×</span>
+                <span>{d.type}</span>
+                <span className="nd-muted">({d.platform})</span>
+                {d.usage && <span className="nd-muted">· {d.usage}</span>}
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
+      <div>
+        <div className="nd-h3" style={{ marginBottom: 4 }}>
+          Timeline
+        </div>
+        <p className="nd-ink2" style={{ fontSize: '0.85rem' }}>
+          {c.starts_on && c.ends_on
+            ? `${c.starts_on} → ${c.ends_on}`
+            : 'No dates set.'}
+        </p>
+      </div>
+
+      <div>
+        <div className="nd-h3" style={{ marginBottom: 4 }}>
+          Audience
+        </div>
+        {!hasAudience ? (
+          <p className="nd-muted" style={{ fontSize: '0.82rem' }}>
+            No targeting set.
+          </p>
+        ) : (
+          <div className="nd-row nd-wrap" style={{ gap: 6 }}>
+            {(audience.niches || []).map((n) => (
+              <span key={n} className="nd-pill nd-pill--outline">
+                {n}
+              </span>
+            ))}
+            {(audience.platforms || []).map((p) => (
+              <span key={p} className="nd-pill nd-pill--outline">
+                {p}
+              </span>
+            ))}
+            {(audience.follower_range?.min || audience.follower_range?.max) && (
+              <span className="nd-pill nd-pill--outline">
+                {audience.follower_range.min ?? '0'}–
+                {audience.follower_range.max ?? '∞'} followers
+              </span>
+            )}
+            {(audience.locations || []).map((l) => (
+              <span key={l} className="nd-pill nd-pill--outline">
+                {l}
+              </span>
+            ))}
+          </div>
+        )}
+      </div>
+
+      <div>
+        <div className="nd-h3" style={{ marginBottom: 4 }}>
+          Funding
+        </div>
+        <p className="nd-ink2" style={{ fontSize: '0.85rem' }}>
+          {c.funded_at ? `Confirmed ${c.funded_at}` : 'Not funded yet.'}
+        </p>
+      </div>
+    </div>
+  )
+}
+
 function CampaignRow({ campaign }) {
   const [publish] = usePublishCampaignMutation()
   const [close] = useCloseCampaignMutation()
   const [invite, { error: inviteError, isSuccess: invited }] =
     useInviteMutation()
   const [open, setOpen] = useState(false)
+  const [viewOpen, setViewOpen] = useState(false)
   const [creatorId, setCreatorId] = useState('')
 
   const onInvite = async (e) => {
@@ -125,6 +232,12 @@ function CampaignRow({ campaign }) {
             </button>
           )}
           <button
+            className="nd-btn nd-btn--ghost nd-btn--sm"
+            onClick={() => setViewOpen(!viewOpen)}
+          >
+            {viewOpen ? 'Hide' : 'View'}
+          </button>
+          <button
             className="nd-btn nd-btn--secondary nd-btn--sm"
             onClick={() => setOpen(!open)}
           >
@@ -132,6 +245,12 @@ function CampaignRow({ campaign }) {
           </button>
         </div>
       </div>
+
+      {viewOpen && (
+        <div className="sub-panel">
+          <CampaignDetails campaign={campaign} />
+        </div>
+      )}
 
       {open && (
         <div className="sub-panel">
