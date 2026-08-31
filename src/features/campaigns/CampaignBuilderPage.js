@@ -243,8 +243,9 @@ export default function CampaignBuilderPage() {
 
   const onPublish = async () => {
     setLocalError('')
-    // Publish requires objective + a valid timeline; guard client-side so the
-    // brand lands back on the step that's missing rather than a raw 422.
+    // Publish requires an objective, a valid timeline, at least one
+    // deliverable, and a non-zero budget; guard client-side so the brand
+    // lands back on the step that's missing rather than a raw 422.
     if (!objective.trim() || !startsOn || !endsOn) {
       setLocalError('Add an objective and a start/end date before publishing.')
       return setStep(4)
@@ -252,6 +253,16 @@ export default function CampaignBuilderPage() {
     if (endsOn < startsOn) {
       setLocalError('The end date must be on or after the start date.')
       return setStep(4)
+    }
+    if (deliverables.length === 0) {
+      setLocalError('Add at least one deliverable before publishing.')
+      return setStep(3)
+    }
+    if (total <= 0) {
+      setLocalError(
+        'Set a rate greater than $0 for at least one deliverable before publishing.'
+      )
+      return setStep(3)
     }
     if (!liveSession) {
       // Sample-data mode: keep the flow walkable without a backend.
