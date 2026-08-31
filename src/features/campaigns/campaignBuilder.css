@@ -250,8 +250,8 @@
 }
 
 .cb__gantt-scale {
-  display: grid;
-  grid-template-columns: repeat(6, 1fr);
+  display: flex;
+  justify-content: space-between;
   font-size: 0.66rem;
   color: var(--ink-faint);
 }
@@ -271,16 +271,19 @@
   color: var(--ink-2);
 }
 .cb__gantt-track {
-  display: grid;
-  grid-template-columns: repeat(6, 1fr);
+  position: relative;
+  min-height: 32px;
   background: var(--canvas);
   border-radius: 8px;
   padding: 3px;
 }
 .cb__gantt-bar {
+  position: absolute;
+  top: 3px;
+  bottom: 3px;
   display: flex;
   align-items: center;
-  padding: 6px 10px;
+  padding: 0 10px;
   border-radius: 6px;
   font-size: 0.7rem;
   font-weight: 600;
@@ -298,13 +301,7 @@
   background: var(--success);
 }
 
-/* ---- Step 5 · Invite & publish ------------------------------------------ */
-.cb__invite-row {
-  display: grid;
-  grid-template-columns: 2fr 1fr 1fr 1fr 0.7fr;
-  gap: 10px;
-  align-items: center;
-}
+/* ---- Step 5 · Shortlist & publish ---------------------------------------- */
 .cb__review {
   align-items: flex-start;
 }

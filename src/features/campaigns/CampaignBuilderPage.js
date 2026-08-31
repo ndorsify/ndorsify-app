@@ -8,12 +8,15 @@ import { Avatar, Toggle } from '../../components/common/ds'
 import { PAGE_ROUTES, buildPath } from '../../routes'
 import { apiErrorMessage } from '../../lib/errors'
 import { money } from '../../lib/format'
+import { compact, toCreatorCard } from '../../lib/creatorFilters'
 import {
   useCreateCampaignMutation,
+  useInviteMutation,
   usePublishCampaignMutation
 } from './campaignApi'
+import { useLazySearchCreatorsQuery } from '../discovery/discoveryApi'
 import { selectIsAuthed } from '../auth/authSlice'
-import { builderShortlist, builderSteps } from '../../lib/sampleData'
+import { builderSteps } from '../../lib/sampleData'
 
 const USAGE = ['Organic only', 'Paid ads 30d', 'Perpetual']
 const REVIEW_WINDOWS = ['24h', '48h', '72h']
@@ -28,83 +31,38 @@ const PLATFORMS = [
 ]
 const DEFAULT_PLATFORM = PLATFORMS[0].value
 
-const initialDeliverables = [
-  {
-    id: 1,
-    platform: 'instagram',
-    type: 'Instagram Reel',
-    spec: '30–45s, product in first 3s',
-    qty: 2,
-    rate: 1600
-  },
-  {
-    id: 2,
-    platform: 'instagram',
-    type: 'Instagram Stories',
-    spec: 'Swipe-up to product page',
-    qty: 3,
-    rate: 300
-  },
-  {
-    id: 3,
-    platform: 'tiktok',
-    type: 'TikTok video',
-    spec: 'Native, 20–40s',
-    qty: 1,
-    rate: 1200
-  }
+// discovery-service uses a differently-cased platform vocabulary than the
+// campaign-service enum above — this bridges the two for the "use audience
+// filters" search prefill in the Shortlist step.
+const CAMPAIGN_TO_DISCOVERY_PLATFORM = {
+  instagram: 'Instagram',
+  tiktok: 'TikTok',
+  youtube: 'YouTube',
+  twitter: 'X'
+}
+
+// Real niches from discovery-service's seed catalog — a starting quick-pick
+// list; brands can also add their own via free text.
+const NICHE_SUGGESTIONS = [
+  'Skincare',
+  'Clean beauty',
+  'K-beauty',
+  'Derm science',
+  "Men's grooming",
+  'SPF & sun care',
+  'Barrier repair',
+  'Fragrance-free',
+  'Minimal skincare'
 ]
 
-const scheduleBars = [
-  {
-    name: 'Content window',
-    label: 'Apr 6 – Apr 20',
-    start: 0,
-    span: 3,
-    tone: 'accent'
-  },
-  { name: 'Review', label: 'Apr 20 – Apr 24', start: 3, span: 1, tone: 'warn' },
-  { name: 'Live', label: 'Apr 24 – May 4', start: 4, span: 2, tone: 'success' }
-]
-
-const inviteRows = [
-  {
-    initials: 'MO',
-    name: 'Maya Okonkwo',
-    niche: 'Beauty & Skincare',
-    reach: '184K',
-    rate: '$3,200',
-    offer: '$3,200',
-    fit: '94%'
-  },
-  {
-    initials: 'NM',
-    name: 'Naledi Mokoena',
-    niche: 'Clean skincare',
-    reach: '156K',
-    rate: '$3,000',
-    offer: '$3,000',
-    fit: '91%'
-  },
-  {
-    initials: 'AD',
-    name: 'Amara Diallo',
-    niche: 'Ingredient-first',
-    reach: '132K',
-    rate: '$2,600',
-    offer: '$2,600',
-    fit: '89%'
-  },
-  {
-    initials: 'CR',
-    name: 'Cass Rivera',
-    niche: 'Beauty',
-    reach: '121K',
-    rate: '$2,400',
-    offer: '$2,400',
-    fit: '87%'
-  }
-]
+const blankDeliverable = () => ({
+  id: Date.now(),
+  platform: DEFAULT_PLATFORM,
+  type: 'New deliverable',
+  spec: 'Describe the deliverable',
+  qty: 1,
+  rate: 500
+})
 
 // ISO (YYYY-MM-DD) offset from today — used to seed sensible default dates so
 // the flow stays walkable and the seeded draft is publishable out of the box.
@@ -122,12 +80,68 @@ const shortDate = (iso) => {
   return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
 }
 
+const addDays = (iso, days) => {
+  const d = new Date(iso + 'T00:00:00')
+  d.setDate(d.getDate() + days)
+  return d.toISOString().slice(0, 10)
+}
+
+const REVIEW_DAYS = { '24h': 1, '48h': 2, '72h': 3 }
+const GANTT_LIVE_SPAN_DAYS = 14 // cosmetic display window only, not sent anywhere
+
+// Real schedule bars + tick labels derived from the dates actually picked,
+// expressed as percentage offsets of the full displayed window.
+function computeSchedule(startsOn, endsOn, reviewWindow) {
+  if (!startsOn || !endsOn) return null
+  const start = new Date(startsOn + 'T00:00:00')
+  const end = new Date(endsOn + 'T00:00:00')
+  if (Number.isNaN(start.getTime()) || Number.isNaN(end.getTime())) return null
+  const reviewDays = REVIEW_DAYS[reviewWindow] || 2
+  const liveStart = addDays(endsOn, reviewDays)
+  const windowEnd = addDays(liveStart, GANTT_LIVE_SPAN_DAYS)
+  const totalMs = new Date(windowEnd + 'T00:00:00') - start
+  if (totalMs <= 0) return null
+  const pct = (fromIso, toIso) => {
+    const from = new Date(fromIso + 'T00:00:00') - start
+    const to = new Date(toIso + 'T00:00:00') - start
+    return {
+      startPct: Math.max(0, (from / totalMs) * 100),
+      widthPct: Math.max(2, ((to - from) / totalMs) * 100)
+    }
+  }
+  const bars = [
+    {
+      name: 'Content window',
+      label: `${shortDate(startsOn)} – ${shortDate(endsOn)}`,
+      tone: 'accent',
+      ...pct(startsOn, endsOn)
+    },
+    {
+      name: 'Review',
+      label: `${shortDate(endsOn)} – ${shortDate(liveStart)}`,
+      tone: 'warn',
+      ...pct(endsOn, liveStart)
+    },
+    {
+      name: 'Live',
+      label: `From ${shortDate(liveStart)}`,
+      tone: 'success',
+      ...pct(liveStart, windowEnd)
+    }
+  ]
+  const ticks = Array.from({ length: 5 }, (_, i) =>
+    shortDate(addDays(startsOn, Math.round((totalMs / 86400000 / 4) * i)))
+  )
+  return { bars, ticks }
+}
+
 export default function CampaignBuilderPage() {
   const navigate = useNavigate()
   const [create, { isLoading: creating, error: createError }] =
     useCreateCampaignMutation()
   const [publish, { isLoading: publishing, error: publishError }] =
     usePublishCampaignMutation()
+  const [invite] = useInviteMutation()
   const isLoading = creating || publishing
   const error = createError || publishError
   // An authed session (access OR persisted refresh token) means a real backend
@@ -138,22 +152,31 @@ export default function CampaignBuilderPage() {
   // walkable.
   const liveSession = useSelector(selectIsAuthed)
 
-  const [step, setStep] = useState(3)
-  const [title, setTitle] = useState('Spring Glow Launch')
-  const [objective, setObjective] = useState(
-    'Drive awareness for the spring ceramide serum launch.'
-  )
+  const [step, setStep] = useState(1)
+  const [title, setTitle] = useState('')
+  const [objective, setObjective] = useState('')
   const [startsOn, setStartsOn] = useState(isoInDays(7))
   const [endsOn, setEndsOn] = useState(isoInDays(37))
-  const [deliverables, setDeliverables] = useState(initialDeliverables)
+  const [deliverables, setDeliverables] = useState(() => [blankDeliverable()])
   const [usage, setUsage] = useState('Organic only')
   const [approval, setApproval] = useState(true)
   const [reviewWindow, setReviewWindow] = useState('48h')
-  const [stagger, setStagger] = useState(true)
   const [exclusivity, setExclusivity] = useState(false)
-  const [message, setMessage] = useState(
-    "Hi {first name} — we're launching a ceramide barrier serum in April and your ingredient-first content is exactly the tone we want. Full brief attached; happy to talk rate."
-  )
+  const [message, setMessage] = useState('')
+
+  // Audience targeting (step 2) — target_audience has no backend schema, so
+  // this shape is free; deliberately mirrors discoveryApi's search params so
+  // it can prefill the Shortlist step's creator search.
+  const [audienceNiches, setAudienceNiches] = useState([])
+  const [audiencePlatforms, setAudiencePlatforms] = useState([])
+  const [followerMin, setFollowerMin] = useState('')
+  const [followerMax, setFollowerMax] = useState('')
+  const [audienceLocations, setAudienceLocations] = useState([])
+  const [minEngagement, setMinEngagement] = useState('')
+  const [audienceNotes, setAudienceNotes] = useState('')
+
+  // Shortlist (step 5) — real creators selected via discovery search.
+  const [selectedCreators, setSelectedCreators] = useState([])
 
   const setField = (id, key, value) =>
     setDeliverables((rows) =>
@@ -161,18 +184,7 @@ export default function CampaignBuilderPage() {
     )
   const removeRow = (id) =>
     setDeliverables((rows) => rows.filter((r) => r.id !== id))
-  const addRow = () =>
-    setDeliverables((rows) => [
-      ...rows,
-      {
-        id: Date.now(),
-        platform: DEFAULT_PLATFORM,
-        type: 'New deliverable',
-        spec: 'Describe the deliverable',
-        qty: 1,
-        rate: 500
-      }
-    ])
+  const addRow = () => setDeliverables((rows) => [...rows, blankDeliverable()])
 
   const creatorSubtotal = deliverables.reduce(
     (sum, d) => sum + d.qty * d.rate,
@@ -195,11 +207,15 @@ export default function CampaignBuilderPage() {
     { label: 'Ndorsify service', value: money(service) }
   ]
 
+  const deliverablesSummary = deliverables
+    .map((d) => `${d.qty} × ${d.type}`)
+    .join(', ')
+
   const reviewChecklist = [
     {
-      mark: 'ok',
+      mark: deliverables.length > 0 ? 'ok' : 'warn',
       label: 'Deliverables',
-      detail: '2 Reels + 3 Stories per creator'
+      detail: deliverablesSummary || 'No deliverables yet'
     },
     { mark: 'ok', label: 'Budget', detail: `${money(total)} total incl. fees` },
     {
@@ -210,7 +226,7 @@ export default function CampaignBuilderPage() {
     { mark: 'warn', label: 'Usage rights', detail: usage }
   ]
 
-  // Sidebar step states derive from the active step (step is 3–5, 1-based).
+  // Sidebar step states derive from the active step (step is 1–5, 1-based).
   const stepState = (i) => {
     if (i < step - 1) return 'done'
     if (i === step - 1) return 'current'
@@ -218,9 +234,11 @@ export default function CampaignBuilderPage() {
   }
 
   const [localError, setLocalError] = useState('')
+  const [publishResult, setPublishResult] = useState(null)
 
-  // Create the draft, then flip it to "open" via /publish. Returns the new
-  // campaign id, or null if anything failed (error surfaced inline).
+  // Create the draft, publish it, then best-effort invite every shortlisted
+  // creator. Publish is never rolled back by an invite failure — invites have
+  // no status gate on the backend, so this ordering is safe either way.
   const createAndPublish = async () => {
     const created = await create({
       title,
@@ -229,20 +247,49 @@ export default function CampaignBuilderPage() {
       deliverables: deliverables.map((d) => ({
         platform: d.platform,
         type: d.type,
-        quantity: d.qty
+        quantity: d.qty,
+        usage,
+        requires_approval: approval
       })),
       budget_amount: total,
       budget_currency: 'USD',
       starts_on: startsOn,
       ends_on: endsOn,
-      target_audience: {}
+      target_audience: {
+        niches: audienceNiches,
+        platforms: audiencePlatforms,
+        follower_range: {
+          min: followerMin ? Number(followerMin) : null,
+          max: followerMax ? Number(followerMax) : null
+        },
+        locations: audienceLocations,
+        min_engagement: minEngagement ? Number(minEngagement) : null,
+        notes: audienceNotes
+      }
     }).unwrap()
     await publish(created.id).unwrap()
-    return created.id
+
+    const results = await Promise.allSettled(
+      selectedCreators.map((c) =>
+        invite({ campaignId: created.id, creatorId: c.id, message }).unwrap()
+      )
+    )
+    const sent = results.filter((r) => r.status === 'fulfilled').length
+    return {
+      id: created.id,
+      sent,
+      failed: results.length - sent,
+      total: results.length
+    }
   }
 
   const onPublish = async () => {
     setLocalError('')
+    setPublishResult(null)
+    if (!title.trim()) {
+      setLocalError('Add a campaign title before publishing.')
+      return setStep(1)
+    }
     // Publish requires an objective, a valid timeline, at least one
     // deliverable, and a non-zero budget; guard client-side so the brand
     // lands back on the step that's missing rather than a raw 422.
@@ -269,24 +316,43 @@ export default function CampaignBuilderPage() {
       return navigate(buildPath(PAGE_ROUTES.CAMPAIGN_FUND, { id: '1' }))
     }
     try {
-      const id = await createAndPublish()
-      navigate(buildPath(PAGE_ROUTES.CAMPAIGN_FUND, { id: String(id) }))
+      const result = await createAndPublish()
+      if (result.failed === 0) {
+        navigate(
+          buildPath(PAGE_ROUTES.CAMPAIGN_FUND, { id: String(result.id) })
+        )
+      } else {
+        // Some invites failed (most likely already-invited 409s) — publish
+        // itself succeeded, so don't silently swallow the partial failure by
+        // auto-navigating; let the brand see the count and continue manually.
+        setPublishResult(result)
+      }
     } catch {
       /* rendered inline via `error`; stay on the page */
     }
   }
 
+  const inviteCount = selectedCreators.length
+
   const primary = {
+    1: { label: 'Continue → Audience', onClick: () => setStep(2) },
+    2: { label: 'Continue → Deliverables', onClick: () => setStep(3) },
     3: { label: 'Continue → Timeline', onClick: () => setStep(4) },
-    4: { label: 'Continue → Invite creators', onClick: () => setStep(5) },
+    4: { label: 'Continue → Shortlist', onClick: () => setStep(5) },
     5: {
-      label: isLoading ? 'Publishing…' : 'Publish & send 8 invites',
+      label: isLoading
+        ? 'Publishing…'
+        : inviteCount > 0
+        ? `Publish & send ${inviteCount} invite${inviteCount === 1 ? '' : 's'}`
+        : 'Publish campaign',
       onClick: onPublish
     }
   }[step]
 
   const pillText = {
-    3: 'Draft · autosaved 1m ago',
+    1: 'Draft · step 1 of 5',
+    2: 'Draft · step 2 of 5',
+    3: 'Draft · step 3 of 5',
     4: 'Draft · step 4 of 5',
     5: 'Ready to publish · step 5 of 5'
   }[step]
@@ -306,6 +372,7 @@ export default function CampaignBuilderPage() {
             <input
               className="cb__title"
               value={title}
+              placeholder="Untitled campaign"
               onChange={(e) => setTitle(e.target.value)}
             />
             <span
@@ -319,12 +386,12 @@ export default function CampaignBuilderPage() {
             </span>
           </div>
           <div className="nd-row" style={{ gap: 10 }}>
-            {step > 3 && (
+            {step > 1 && (
               <button
                 className="nd-btn nd-btn--secondary nd-btn--sm"
                 onClick={() => setStep((s) => s - 1)}
               >
-                {step === 4 ? '← Deliverables' : '← Timeline'}
+                ← {builderSteps[step - 2].title}
               </button>
             )}
             <button
@@ -390,10 +457,36 @@ export default function CampaignBuilderPage() {
 
           {/* Center */}
           <main className="cb__main">
-            {step === 3 && (
-              <DeliverablesStep
+            {step === 1 && (
+              <BasicsStep
+                title={title}
+                setTitle={setTitle}
                 objective={objective}
                 setObjective={setObjective}
+                error={error}
+                localError={localError}
+              />
+            )}
+            {step === 2 && (
+              <AudienceStep
+                niches={audienceNiches}
+                setNiches={setAudienceNiches}
+                platforms={audiencePlatforms}
+                setPlatforms={setAudiencePlatforms}
+                followerMin={followerMin}
+                setFollowerMin={setFollowerMin}
+                followerMax={followerMax}
+                setFollowerMax={setFollowerMax}
+                locations={audienceLocations}
+                setLocations={setAudienceLocations}
+                minEngagement={minEngagement}
+                setMinEngagement={setMinEngagement}
+                notes={audienceNotes}
+                setNotes={setAudienceNotes}
+              />
+            )}
+            {step === 3 && (
+              <DeliverablesStep
                 deliverables={deliverables}
                 setField={setField}
                 removeRow={removeRow}
@@ -414,8 +507,6 @@ export default function CampaignBuilderPage() {
                 setEndsOn={setEndsOn}
                 reviewWindow={reviewWindow}
                 setReviewWindow={setReviewWindow}
-                stagger={stagger}
-                setStagger={setStagger}
                 exclusivity={exclusivity}
                 setExclusivity={setExclusivity}
                 error={error}
@@ -423,7 +514,24 @@ export default function CampaignBuilderPage() {
               />
             )}
             {step === 5 && (
-              <InviteStep message={message} setMessage={setMessage} />
+              <ShortlistStep
+                message={message}
+                setMessage={setMessage}
+                selectedCreators={selectedCreators}
+                setSelectedCreators={setSelectedCreators}
+                audienceNiches={audienceNiches}
+                audiencePlatforms={audiencePlatforms}
+                followerMin={followerMin}
+                followerMax={followerMax}
+                publishResult={publishResult}
+                onContinueToFund={() =>
+                  navigate(
+                    buildPath(PAGE_ROUTES.CAMPAIGN_FUND, {
+                      id: String(publishResult.id)
+                    })
+                  )
+                }
+              />
             )}
           </main>
 
@@ -436,9 +544,14 @@ export default function CampaignBuilderPage() {
               publishing={isLoading}
               error={error}
               localError={localError}
+              selectedCreators={selectedCreators}
             />
           ) : (
-            <BudgetRail budgetLines={budgetLines} total={total} />
+            <BudgetRail
+              budgetLines={budgetLines}
+              total={total}
+              selectedCreators={selectedCreators}
+            />
           )}
         </div>
       </div>
@@ -446,9 +559,255 @@ export default function CampaignBuilderPage() {
   )
 }
 
-function DeliverablesStep({
+function BasicsStep({
+  title,
+  setTitle,
   objective,
   setObjective,
+  error,
+  localError
+}) {
+  return (
+    <>
+      <div className="nd-stack" style={{ gap: 8 }}>
+        <span className="nd-eyebrow">Step 1 · Basics</span>
+        <h1 className="nd-h1" style={{ fontSize: '1.75rem' }}>
+          Name the campaign and set the goal
+        </h1>
+        <div className="nd-ink2" style={{ fontSize: '0.88rem', maxWidth: 560 }}>
+          This is what creators and your team will see first.
+        </div>
+      </div>
+
+      <div className="nd-card nd-stack" style={{ gap: 8 }}>
+        <span className="nd-eyebrow">Campaign title</span>
+        <input
+          className="nd-input"
+          placeholder="e.g. Spring product launch"
+          value={title}
+          onChange={(e) => setTitle(e.target.value)}
+        />
+      </div>
+
+      <div className="nd-card nd-stack" style={{ gap: 8 }}>
+        <span className="nd-eyebrow">Campaign objective</span>
+        <textarea
+          className="nd-textarea"
+          rows={3}
+          placeholder="What is this campaign trying to achieve?"
+          value={objective}
+          onChange={(e) => setObjective(e.target.value)}
+        />
+        <div className="nd-muted" style={{ fontSize: '0.72rem' }}>
+          Shown to creators in the marketplace listing. Required to publish.
+        </div>
+      </div>
+
+      {(localError || error) && (
+        <p className="nd-error">{localError || apiErrorMessage(error)}</p>
+      )}
+    </>
+  )
+}
+
+function TagPicker({ label, suggestions, values, setValues, placeholder }) {
+  const [draft, setDraft] = useState('')
+  const toggle = (v) =>
+    setValues((rows) =>
+      rows.includes(v) ? rows.filter((r) => r !== v) : [...rows, v]
+    )
+  const addCustom = () => {
+    const v = draft.trim()
+    if (v && !values.includes(v)) setValues((rows) => [...rows, v])
+    setDraft('')
+  }
+  return (
+    <div className="nd-card nd-card--tight nd-stack" style={{ gap: 10 }}>
+      <div className="nd-h3" style={{ fontSize: '0.85rem' }}>
+        {label}
+      </div>
+      {suggestions && (
+        <div className="nd-row nd-wrap" style={{ gap: 8 }}>
+          {suggestions.map((s) => (
+            <button
+              key={s}
+              type="button"
+              className={values.includes(s) ? 'cb__chip is-on' : 'cb__chip'}
+              onClick={() => toggle(s)}
+            >
+              {s}
+            </button>
+          ))}
+        </div>
+      )}
+      {values.filter((v) => !suggestions?.includes(v)).length > 0 && (
+        <div className="nd-row nd-wrap" style={{ gap: 8 }}>
+          {values
+            .filter((v) => !suggestions?.includes(v))
+            .map((v) => (
+              <span key={v} className="nd-pill nd-pill--outline">
+                {v}{' '}
+                <button
+                  type="button"
+                  onClick={() => toggle(v)}
+                  style={{
+                    border: 'none',
+                    background: 'transparent',
+                    cursor: 'pointer',
+                    marginLeft: 4
+                  }}
+                  aria-label={`Remove ${v}`}
+                >
+                  ✕
+                </button>
+              </span>
+            ))}
+        </div>
+      )}
+      <div className="nd-row" style={{ gap: 8 }}>
+        <input
+          className="nd-input nd-grow"
+          placeholder={placeholder}
+          value={draft}
+          onChange={(e) => setDraft(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter') {
+              e.preventDefault()
+              addCustom()
+            }
+          }}
+        />
+        <button type="button" className="nd-add" onClick={addCustom}>
+          + Add
+        </button>
+      </div>
+    </div>
+  )
+}
+
+function AudienceStep({
+  niches,
+  setNiches,
+  platforms,
+  setPlatforms,
+  followerMin,
+  setFollowerMin,
+  followerMax,
+  setFollowerMax,
+  locations,
+  setLocations,
+  minEngagement,
+  setMinEngagement,
+  notes,
+  setNotes
+}) {
+  const togglePlatform = (v) =>
+    setPlatforms((rows) =>
+      rows.includes(v) ? rows.filter((r) => r !== v) : [...rows, v]
+    )
+  return (
+    <>
+      <div className="nd-stack" style={{ gap: 8 }}>
+        <span className="nd-eyebrow">Step 2 · Audience</span>
+        <h1 className="nd-h1" style={{ fontSize: '1.75rem' }}>
+          Who do you want to reach?
+        </h1>
+        <div className="nd-ink2" style={{ fontSize: '0.88rem', maxWidth: 560 }}>
+          Optional — helps you find matching creators faster in the Shortlist
+          step. Nothing here blocks publishing.
+        </div>
+      </div>
+
+      <TagPicker
+        label="Niches"
+        suggestions={NICHE_SUGGESTIONS}
+        values={niches}
+        setValues={setNiches}
+        placeholder="Add a custom niche"
+      />
+
+      <div className="nd-card nd-card--tight nd-stack" style={{ gap: 10 }}>
+        <div className="nd-h3" style={{ fontSize: '0.85rem' }}>
+          Platforms
+        </div>
+        <div className="nd-row nd-wrap" style={{ gap: 8 }}>
+          {PLATFORMS.map((p) => (
+            <button
+              key={p.value}
+              type="button"
+              className={
+                platforms.includes(p.value) ? 'cb__chip is-on' : 'cb__chip'
+              }
+              onClick={() => togglePlatform(p.value)}
+            >
+              {p.label}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <div className="cb__opts">
+        <div className="nd-card nd-card--tight nd-stack" style={{ gap: 9 }}>
+          <div className="nd-h3" style={{ fontSize: '0.85rem' }}>
+            Follower range
+          </div>
+          <div className="nd-row" style={{ gap: 8 }}>
+            <input
+              className="nd-input"
+              type="number"
+              min="0"
+              placeholder="Min"
+              value={followerMin}
+              onChange={(e) => setFollowerMin(e.target.value)}
+            />
+            <input
+              className="nd-input"
+              type="number"
+              min="0"
+              placeholder="Max"
+              value={followerMax}
+              onChange={(e) => setFollowerMax(e.target.value)}
+            />
+          </div>
+        </div>
+        <div className="nd-card nd-card--tight nd-stack" style={{ gap: 9 }}>
+          <div className="nd-h3" style={{ fontSize: '0.85rem' }}>
+            Min. engagement rate
+          </div>
+          <input
+            className="nd-input"
+            type="number"
+            min="0"
+            step="0.1"
+            placeholder="e.g. 3.5"
+            value={minEngagement}
+            onChange={(e) => setMinEngagement(e.target.value)}
+          />
+        </div>
+      </div>
+
+      <TagPicker
+        label="Locations"
+        values={locations}
+        setValues={setLocations}
+        placeholder="e.g. Lagos, NG"
+      />
+
+      <div className="nd-card nd-stack" style={{ gap: 8 }}>
+        <span className="nd-eyebrow">Notes</span>
+        <textarea
+          className="nd-textarea"
+          rows={2}
+          placeholder="Anything else about who you're trying to reach"
+          value={notes}
+          onChange={(e) => setNotes(e.target.value)}
+        />
+      </div>
+    </>
+  )
+}
+
+function DeliverablesStep({
   deliverables,
   setField,
   removeRow,
@@ -470,20 +829,6 @@ function DeliverablesStep({
         <div className="nd-ink2" style={{ fontSize: '0.88rem', maxWidth: 560 }}>
           Every line item is priced per creator. Creators can counter-offer on
           rate before accepting.
-        </div>
-      </div>
-
-      <div className="nd-card nd-stack" style={{ gap: 8 }}>
-        <span className="nd-eyebrow">Campaign objective</span>
-        <textarea
-          className="nd-textarea"
-          rows={2}
-          placeholder="What is this campaign trying to achieve?"
-          value={objective}
-          onChange={(e) => setObjective(e.target.value)}
-        />
-        <div className="nd-muted" style={{ fontSize: '0.72rem' }}>
-          Shown to creators in the marketplace listing. Required to publish.
         </div>
       </div>
 
@@ -601,8 +946,6 @@ function TimelineStep({
   setEndsOn,
   reviewWindow,
   setReviewWindow,
-  stagger,
-  setStagger,
   exclusivity,
   setExclusivity,
   error,
@@ -618,6 +961,7 @@ function TimelineStep({
     { label: 'Review', value: `${reviewWindow} per draft`, rel: 'Turnaround' },
     { label: 'Live from', value: shortDate(endsOn), rel: 'Posts go public' }
   ]
+  const schedule = computeSchedule(startsOn, endsOn, reviewWindow)
   return (
     <>
       <div className="nd-stack" style={{ gap: 8 }}>
@@ -671,32 +1015,39 @@ function TimelineStep({
         <div className="nd-between">
           <div className="nd-h3">Schedule preview</div>
         </div>
-        <div className="cb__gantt-scale">
-          {['Apr 6', 'Apr 13', 'Apr 20', 'Apr 27', 'May 4', 'May 11'].map(
-            (t) => (
-              <span key={t} className="nd-mono">
-                {t}
-              </span>
-            )
-          )}
-        </div>
-        <div className="cb__gantt">
-          {scheduleBars.map((g) => (
-            <div className="cb__gantt-row" key={g.name}>
-              <span className="cb__gantt-name">{g.name}</span>
-              <span className="cb__gantt-track">
-                <span
-                  className={`cb__gantt-bar cb__gantt-bar--${g.tone}`}
-                  style={{
-                    gridColumn: `${g.start + 1} / span ${g.span}`
-                  }}
-                >
-                  {g.label}
+        {!schedule ? (
+          <p className="nd-muted" style={{ fontSize: '0.82rem' }}>
+            Pick a start and end date to preview the schedule.
+          </p>
+        ) : (
+          <>
+            <div className="cb__gantt-scale">
+              {schedule.ticks.map((t, i) => (
+                <span key={`${t}-${i}`} className="nd-mono">
+                  {t}
                 </span>
-              </span>
+              ))}
             </div>
-          ))}
-        </div>
+            <div className="cb__gantt">
+              {schedule.bars.map((g) => (
+                <div className="cb__gantt-row" key={g.name}>
+                  <span className="cb__gantt-name">{g.name}</span>
+                  <span className="cb__gantt-track">
+                    <span
+                      className={`cb__gantt-bar cb__gantt-bar--${g.tone}`}
+                      style={{
+                        left: `${g.startPct}%`,
+                        width: `${g.widthPct}%`
+                      }}
+                    >
+                      {g.label}
+                    </span>
+                  </span>
+                </div>
+              ))}
+            </div>
+          </>
+        )}
       </div>
 
       <div className="cb__opts">
@@ -723,20 +1074,6 @@ function TimelineStep({
         </div>
         <div className="nd-card nd-card--tight nd-stack" style={{ gap: 10 }}>
           <div className="nd-h3" style={{ fontSize: '0.85rem' }}>
-            Posting cadence
-          </div>
-          <div className="nd-row" style={{ gap: 10 }}>
-            <Toggle on={stagger} onClick={() => setStagger((v) => !v)} />
-            <span style={{ fontSize: '0.8rem' }}>
-              Stagger posts across the window
-            </span>
-          </div>
-          <div className="nd-muted" style={{ fontSize: '0.72rem' }}>
-            Max 2 creators live on the same day.
-          </div>
-        </div>
-        <div className="nd-card nd-card--tight nd-stack" style={{ gap: 10 }}>
-          <div className="nd-h3" style={{ fontSize: '0.85rem' }}>
             Exclusivity
           </div>
           <div className="nd-row" style={{ gap: 10 }}>
@@ -757,81 +1094,229 @@ function TimelineStep({
   )
 }
 
-function InviteStep({ message, setMessage }) {
+function ShortlistStep({
+  message,
+  setMessage,
+  selectedCreators,
+  setSelectedCreators,
+  audienceNiches,
+  audiencePlatforms,
+  followerMin,
+  followerMax,
+  publishResult,
+  onContinueToFund
+}) {
+  const [query, setQuery] = useState('')
+  const [searchPlatforms, setSearchPlatforms] = useState([])
+  const [runSearch, { data: results, isFetching }] =
+    useLazySearchCreatorsQuery()
+
+  const search = (params) => runSearch(params)
+
+  const useAudienceFilters = () => {
+    const mappedPlatforms = audiencePlatforms
+      .map((p) => CAMPAIGN_TO_DISCOVERY_PLATFORM[p])
+      .filter(Boolean)
+    setSearchPlatforms(mappedPlatforms)
+    setQuery('')
+    search({
+      sort: 'followers',
+      niche: audienceNiches,
+      ...(mappedPlatforms.length ? { platform: mappedPlatforms } : {}),
+      ...(followerMin ? { min_followers: Number(followerMin) } : {}),
+      ...(followerMax ? { max_followers: Number(followerMax) } : {})
+    })
+  }
+
+  const onSearchSubmit = (e) => {
+    e.preventDefault()
+    search({
+      sort: 'followers',
+      q: query,
+      ...(searchPlatforms.length ? { platform: searchPlatforms } : {})
+    })
+  }
+
+  const cards = Array.isArray(results) ? results.map(toCreatorCard) : []
+  const selectedIds = new Set(selectedCreators.map((c) => c.id))
+  const toggleSelect = (card) => {
+    setSelectedCreators((rows) =>
+      selectedIds.has(card.id)
+        ? rows.filter((r) => r.id !== card.id)
+        : [...rows, card]
+    )
+  }
+
   return (
     <>
-      <div className="nd-between nd-wrap" style={{ gap: 12 }}>
+      <div className="nd-stack" style={{ gap: 8 }}>
+        <span className="nd-eyebrow">Step 5 · Shortlist</span>
+        <h1 className="nd-h1" style={{ fontSize: '1.75rem' }}>
+          {selectedCreators.length} creator
+          {selectedCreators.length === 1 ? '' : 's'} shortlisted
+        </h1>
+      </div>
+
+      <div className="nd-card nd-stack" style={{ gap: 12 }}>
+        <form
+          className="nd-row nd-wrap"
+          style={{ gap: 8 }}
+          onSubmit={onSearchSubmit}
+        >
+          <input
+            className="nd-input nd-grow"
+            placeholder="Search creators, niches, keywords"
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+          />
+          <button className="nd-btn nd-btn--primary nd-btn--sm" type="submit">
+            Search
+          </button>
+          <button
+            type="button"
+            className="nd-btn nd-btn--secondary nd-btn--sm"
+            onClick={useAudienceFilters}
+          >
+            Use audience filters
+          </button>
+        </form>
+
+        {isFetching && (
+          <p className="nd-muted" style={{ fontSize: '0.82rem' }}>
+            Searching…
+          </p>
+        )}
+        {!isFetching && cards.length === 0 && (
+          <p className="nd-muted" style={{ fontSize: '0.82rem' }}>
+            Search to find creators to shortlist.
+          </p>
+        )}
         <div className="nd-stack" style={{ gap: 8 }}>
-          <span className="nd-eyebrow">Step 5 · Invite creators</span>
-          <h1 className="nd-h1" style={{ fontSize: '1.75rem' }}>
-            8 creators shortlisted · $38,400 in offers
-          </h1>
-        </div>
-        <div className="nd-row nd-wrap" style={{ gap: 8 }}>
-          <button className="nd-btn nd-btn--secondary nd-btn--sm">
-            Add from discovery
-          </button>
-          <button className="nd-btn nd-btn--ghost nd-btn--sm">
-            Suggest 5 more
-          </button>
+          {cards.map((c) => (
+            <div
+              className="nd-between"
+              key={c.id}
+              style={{
+                padding: '10px 4px',
+                borderBottom: '1px solid var(--canvas)'
+              }}
+            >
+              <span className="nd-row" style={{ gap: 10 }}>
+                <Avatar label={c.initials} size={30} />
+                <span className="nd-stack" style={{ gap: 1 }}>
+                  <span className="nd-h3" style={{ fontSize: '0.82rem' }}>
+                    {c.name}
+                  </span>
+                  <span className="nd-muted" style={{ fontSize: '0.7rem' }}>
+                    {c.niche} · {c.followers} followers
+                  </span>
+                </span>
+              </span>
+              <button
+                className={
+                  selectedIds.has(c.id)
+                    ? 'nd-btn nd-btn--secondary nd-btn--sm'
+                    : 'nd-btn nd-btn--primary nd-btn--sm'
+                }
+                onClick={() => toggleSelect(c)}
+              >
+                {selectedIds.has(c.id) ? 'Shortlisted ✓' : 'Shortlist'}
+              </button>
+            </div>
+          ))}
         </div>
       </div>
 
-      <div className="nd-card">
-        <div className="nd-thead cb__invite-row">
-          <span>Creator</span>
-          <span>Reach est.</span>
-          <span>Their rate</span>
-          <span>Your offer</span>
-          <span>Fit</span>
-        </div>
-        {inviteRows.map((i) => (
-          <div className="nd-trow cb__invite-row" key={i.name}>
-            <span className="nd-row" style={{ gap: 10 }}>
-              <Avatar label={i.initials} size={30} />
-              <span className="nd-stack" style={{ gap: 1 }}>
-                <span className="nd-h3" style={{ fontSize: '0.82rem' }}>
-                  {i.name}
-                </span>
-                <span className="nd-muted" style={{ fontSize: '0.7rem' }}>
-                  {i.niche}
-                </span>
-              </span>
-            </span>
-            <span className="nd-mono" style={{ fontSize: '0.8rem' }}>
-              {i.reach}
-            </span>
-            <span className="nd-mono nd-ink2" style={{ fontSize: '0.8rem' }}>
-              {i.rate}
-            </span>
-            <span
-              className="nd-mono"
-              style={{ fontSize: '0.8rem', fontWeight: 600 }}
-            >
-              {i.offer}
-            </span>
-            <span className="nd-pill nd-pill--success">{i.fit}</span>
+      {selectedCreators.length > 0 && (
+        <div className="nd-card">
+          <div
+            className="nd-thead"
+            style={{
+              display: 'grid',
+              gridTemplateColumns: '2fr 1fr 1fr 32px',
+              gap: 10
+            }}
+          >
+            <span>Creator</span>
+            <span>Reach est.</span>
+            <span>Their rate</span>
+            <span />
           </div>
-        ))}
-      </div>
+          {selectedCreators.map((c) => (
+            <div
+              className="nd-trow"
+              key={c.id}
+              style={{
+                display: 'grid',
+                gridTemplateColumns: '2fr 1fr 1fr 32px',
+                gap: 10,
+                alignItems: 'center'
+              }}
+            >
+              <span className="nd-row" style={{ gap: 10 }}>
+                <Avatar label={c.initials} size={26} />
+                <span style={{ fontSize: '0.82rem' }}>{c.name}</span>
+              </span>
+              <span className="nd-mono" style={{ fontSize: '0.8rem' }}>
+                {c.followers}
+              </span>
+              <span className="nd-mono nd-ink2" style={{ fontSize: '0.8rem' }}>
+                {c.rate ? money(c.rate) : '—'}
+              </span>
+              <button
+                className="cb__remove"
+                aria-label="Remove"
+                onClick={() =>
+                  setSelectedCreators((rows) =>
+                    rows.filter((r) => r.id !== c.id)
+                  )
+                }
+              >
+                ✕
+              </button>
+            </div>
+          ))}
+        </div>
+      )}
 
       <div className="nd-card nd-stack" style={{ gap: 10 }}>
         <div className="nd-between">
           <div className="nd-h3">Invitation message</div>
-          <span className="nd-eyebrow">Personalise per creator</span>
+          <span className="nd-eyebrow">Sent with each invite</span>
         </div>
         <textarea
           className="nd-textarea"
           rows={3}
+          placeholder="Add a personal note for the creators you're inviting…"
           value={message}
           onChange={(e) => setMessage(e.target.value)}
         />
       </div>
+
+      {publishResult && (
+        <div className="nd-card nd-card--accent nd-stack" style={{ gap: 10 }}>
+          <p style={{ fontSize: '0.86rem' }}>
+            Published. {publishResult.sent} of {publishResult.total} invitations
+            sent — {publishResult.failed} failed, most likely already invited.
+          </p>
+          <button
+            className="nd-btn nd-btn--primary nd-btn--sm"
+            style={{ alignSelf: 'flex-start' }}
+            onClick={onContinueToFund}
+          >
+            Continue to funding →
+          </button>
+        </div>
+      )}
     </>
   )
 }
 
-function BudgetRail({ budgetLines, total }) {
+function BudgetRail({ budgetLines, total, selectedCreators }) {
+  const combinedReach = selectedCreators.reduce(
+    (sum, c) => sum + (c.followerCount || 0),
+    0
+  )
   return (
     <aside className="cb__budget">
       <div className="nd-h3">Budget summary</div>
@@ -860,44 +1345,45 @@ function BudgetRail({ budgetLines, total }) {
           {money(total)}
         </span>
       </div>
-      <div className="cb__reach">
-        <div
-          style={{
-            fontSize: '0.75rem',
-            fontWeight: 700,
-            color: 'var(--accent-press)'
-          }}
-        >
-          Projected reach 1.9M–2.4M
+      {combinedReach > 0 && (
+        <div className="cb__reach">
+          <div
+            style={{
+              fontSize: '0.75rem',
+              fontWeight: 700,
+              color: 'var(--accent-press)'
+            }}
+          >
+            Combined audience of {compact(combinedReach)}
+          </div>
+          <div
+            className="nd-ink2"
+            style={{ fontSize: '0.75rem', lineHeight: 1.5 }}
+          >
+            Sum of followers across your shortlisted creators.
+          </div>
         </div>
-        <div
-          className="nd-ink2"
-          style={{ fontSize: '0.75rem', lineHeight: 1.5 }}
-        >
-          Based on the 8 creators shortlisted in step 5.
-        </div>
-      </div>
+      )}
       <div className="nd-stack" style={{ gap: 10 }}>
         <span className="nd-eyebrow">
-          Shortlist · {builderShortlist.length}
+          Shortlist · {selectedCreators.length}
         </span>
-        {builderShortlist.map((s) => (
-          <div className="nd-row" style={{ gap: 10 }} key={s.name}>
+        {selectedCreators.length === 0 && (
+          <p className="nd-muted" style={{ fontSize: '0.78rem' }}>
+            No creators shortlisted yet — add some in step 5.
+          </p>
+        )}
+        {selectedCreators.map((s) => (
+          <div className="nd-row" style={{ gap: 10 }} key={s.id}>
             <Avatar label={s.initials} size={30} />
             <span className="nd-grow" style={{ fontSize: '0.8rem' }}>
               {s.name}
             </span>
             <span className="nd-mono nd-ink2" style={{ fontSize: '0.75rem' }}>
-              {s.rate}
+              {s.rate ? money(s.rate) : '—'}
             </span>
           </div>
         ))}
-        <span
-          className="nd-btn nd-btn--ghost nd-btn--sm"
-          style={{ alignSelf: 'flex-start' }}
-        >
-          Edit shortlist →
-        </span>
       </div>
     </aside>
   )
@@ -909,7 +1395,8 @@ function PublishRail({
   onPublish,
   publishing,
   error,
-  localError
+  localError,
+  selectedCreators
 }) {
   return (
     <aside className="cb__budget">
@@ -928,13 +1415,12 @@ function PublishRail({
                 {r.detail}
               </span>
             </span>
-            <button className="nd-btn nd-btn--ghost nd-btn--sm">Edit</button>
           </div>
         ))}
       </div>
       <div className="cb__total">
         <span className="nd-h3" style={{ fontSize: '0.85rem' }}>
-          Total to fund
+          Total budget
         </span>
         <span
           className="nd-mono"
@@ -948,7 +1434,13 @@ function PublishRail({
         onClick={onPublish}
         disabled={publishing}
       >
-        {publishing ? 'Publishing…' : 'Publish & fund escrow →'}
+        {publishing
+          ? 'Publishing…'
+          : selectedCreators.length > 0
+          ? `Publish & send ${selectedCreators.length} invite${
+              selectedCreators.length === 1 ? '' : 's'
+            }`
+          : 'Publish campaign →'}
       </button>
       {(localError || error) && (
         <p className="nd-error">{localError || apiErrorMessage(error)}</p>
@@ -957,27 +1449,7 @@ function PublishRail({
         className="nd-muted"
         style={{ fontSize: '0.72rem', lineHeight: 1.5 }}
       >
-        Invites send once escrow clears. Unaccepted offers are refunded
-        automatically.
-      </div>
-      <div className="cb__reach">
-        <span className="nd-eyebrow">Projection</span>
-        <div
-          className="nd-mono"
-          style={{
-            fontSize: '1.05rem',
-            fontWeight: 600,
-            color: 'var(--accent-press)'
-          }}
-        >
-          1.9M – 2.4M
-        </div>
-        <div
-          className="nd-ink2"
-          style={{ fontSize: '0.73rem', lineHeight: 1.5 }}
-        >
-          Estimated reach at a $19 blended CPM, assuming 6 of 8 creators accept.
-        </div>
+        Funding happens as a separate step after publishing.
       </div>
     </aside>
   )

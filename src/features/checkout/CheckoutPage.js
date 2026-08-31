@@ -1,9 +1,16 @@
 import { useState } from 'react'
+import { useSelector } from 'react-redux'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 
 import './checkout.css'
 import { PAGE_ROUTES, buildPath } from '../../routes'
 import { money } from '../../lib/format'
+import { apiErrorMessage } from '../../lib/errors'
+import { selectIsAuthed } from '../auth/authSlice'
+import {
+  useFundCampaignMutation,
+  useGetCampaignQuery
+} from '../campaigns/campaignApi'
 
 const paymentMethods = [
   {
@@ -29,50 +36,31 @@ const paymentMethods = [
   }
 ]
 
-const releaseSchedule = [
-  {
-    label: 'On draft approval',
-    detail: 'Released per creator as each deliverable is approved',
-    amount: money(38400)
-  },
-  {
-    label: 'Platform service fee',
-    detail: 'Charged to you, never deducted from creators',
-    amount: money(3700)
-  },
-  {
-    label: 'Refundable hold',
-    detail: 'Unaccepted offers returned within 3 business days',
-    amount: money(500)
-  }
-]
-
-const summaryAmounts = [
-  { label: 'Creator offers (8)', amount: 38400 },
-  { label: 'Ndorsify service (5%)', amount: 3700 },
-  { label: 'Refundable escrow hold', amount: 500 }
-]
-
-const summary = summaryAmounts.map((s) => ({
-  label: s.label,
-  value: money(s.amount)
-}))
-
-// Derived from the line items above so the charged total can never drift
-// from what's actually shown to the brand.
-const total = summaryAmounts.reduce((sum, s) => sum + s.amount, 0)
-
 export default function CheckoutPage() {
   const navigate = useNavigate()
   const { id = '1' } = useParams()
+  const liveSession = useSelector(selectIsAuthed)
+  const { data: campaign, error: campaignError } = useGetCampaignQuery(id, {
+    skip: !liveSession
+  })
+  const [fund, { isLoading: funding, error: fundError }] =
+    useFundCampaignMutation()
   const [method, setMethod] = useState('visa')
   const [autoRelease, setAutoRelease] = useState(true)
-  const [funding, setFunding] = useState(false)
 
-  const onFund = () => {
-    setFunding(true)
-    // Escrow settlement is faked in demo mode; move on to the signature step.
-    setTimeout(() => navigate(buildPath(PAGE_ROUTES.CONTRACT, { id })), 700)
+  const title = campaign?.title || (liveSession ? '' : 'Spring Glow Launch')
+  const budget = campaign?.budget_amount ?? 0
+
+  const onFund = async () => {
+    if (!liveSession) {
+      return navigate(buildPath(PAGE_ROUTES.CONTRACT, { id }))
+    }
+    try {
+      await fund(id).unwrap()
+      navigate(buildPath(PAGE_ROUTES.CONTRACT, { id }))
+    } catch {
+      /* rendered inline via fundError; stay on the page */
+    }
   }
 
   return (
@@ -82,11 +70,19 @@ export default function CheckoutPage() {
           <span className="nd-brand__mark" />
           <span className="nd-brand__word">Ndorsify</span>
         </Link>
-        <span className="nd-eyebrow">Secure checkout · Spring Glow Launch</span>
+        <span className="nd-eyebrow">
+          Secure checkout{title ? ` · ${title}` : ''}
+        </span>
         <span className="nd-pill nd-pill--success">
-          Held by Ndorsify Escrow · PCI DSS
+          Funding acknowledgment · full escrow in a later phase
         </span>
       </header>
+
+      {liveSession && campaignError && (
+        <p className="nd-error" style={{ margin: '0 28px' }}>
+          {apiErrorMessage(campaignError)}
+        </p>
+      )}
 
       <div className="co__grid">
         <main className="nd-stack" style={{ gap: 18 }}>
@@ -98,8 +94,8 @@ export default function CheckoutPage() {
               className="nd-ink2"
               style={{ fontSize: '0.9rem', maxWidth: 560 }}
             >
-              Money sits in escrow until each creator's deliverables are
-              approved. Anything unaccepted comes straight back to you.
+              Confirming funding here records your commitment on the campaign.
+              Real payment processing and escrow lands in a later phase.
             </p>
           </div>
 
@@ -137,25 +133,21 @@ export default function CheckoutPage() {
             <button className="nd-add" type="button">
               + Add payment method
             </button>
+            <p className="nd-muted" style={{ fontSize: '0.72rem' }}>
+              Illustrative — not wired to a real payment processor yet.
+            </p>
           </div>
 
           <div className="nd-card nd-stack" style={{ gap: 12 }}>
             <div className="nd-h3">Release schedule</div>
-            {releaseSchedule.map((r) => (
-              <div className="nd-between co__release" key={r.label}>
-                <span className="nd-stack" style={{ gap: 2 }}>
-                  <span className="nd-h3" style={{ fontSize: '0.85rem' }}>
-                    {r.label}
-                  </span>
-                  <span className="nd-muted" style={{ fontSize: '0.74rem' }}>
-                    {r.detail}
-                  </span>
-                </span>
-                <span className="nd-mono" style={{ fontWeight: 600 }}>
-                  {r.amount}
-                </span>
-              </div>
-            ))}
+            <p
+              className="nd-ink2"
+              style={{ fontSize: '0.82rem', lineHeight: 1.55 }}
+            >
+              Deliverables release per creator as each is approved on the
+              collaboration board. Once real escrow lands, unaccepted offers
+              will be refunded automatically.
+            </p>
             <label className="co__auto">
               <span
                 className={autoRelease ? 'nd-check is-done' : 'nd-check'}
@@ -176,29 +168,24 @@ export default function CheckoutPage() {
         <aside className="nd-stack" style={{ gap: 16 }}>
           <div className="nd-card nd-stack" style={{ gap: 13 }}>
             <div className="nd-h3">Order summary</div>
-            <div className="nd-stack" style={{ gap: 10 }}>
-              {summary.map((c) => (
-                <div
-                  className="nd-between"
-                  style={{ fontSize: '0.82rem', color: 'var(--ink-2)' }}
-                  key={c.label}
-                >
-                  <span>{c.label}</span>
-                  <span className="nd-mono" style={{ color: 'var(--ink)' }}>
-                    {c.value}
-                  </span>
-                </div>
-              ))}
+            <div
+              className="nd-between"
+              style={{ fontSize: '0.82rem', color: 'var(--ink-2)' }}
+            >
+              <span>Campaign budget</span>
+              <span className="nd-mono" style={{ color: 'var(--ink)' }}>
+                {money(budget)}
+              </span>
             </div>
             <div className="co__total">
               <span className="nd-h3" style={{ fontSize: '0.85rem' }}>
-                Charged today
+                Total
               </span>
               <span
                 className="nd-mono"
                 style={{ fontSize: '1.4rem', fontWeight: 600 }}
               >
-                {money(total)}
+                {money(budget)}
               </span>
             </div>
             <button
@@ -207,28 +194,31 @@ export default function CheckoutPage() {
               disabled={funding}
             >
               {funding
-                ? 'Funding escrow…'
-                : `Fund ${money(total)} & send invites`}
+                ? 'Confirming…'
+                : `Confirm ${money(budget)} — mark as funded`}
             </button>
+            {fundError && (
+              <p className="nd-error">{apiErrorMessage(fundError)}</p>
+            )}
             <p
               className="nd-muted"
               style={{ fontSize: '0.73rem', lineHeight: 1.5 }}
             >
-              Refunds for unaccepted offers process within 3 business days.
+              No payment is actually charged — this records a funding
+              acknowledgment on the campaign.
             </p>
           </div>
 
           <div className="nd-card nd-card--accent nd-stack" style={{ gap: 6 }}>
             <div className="nd-h3" style={{ fontSize: '0.85rem' }}>
-              Why creators trust escrow
+              Why funding matters
             </div>
             <p
               className="nd-ink2"
               style={{ fontSize: '0.78rem', lineHeight: 1.55 }}
             >
-              Funded campaigns get a 2.4× higher acceptance rate. Creators can
-              see your budget is already secured before they commit filming
-              time.
+              Funded campaigns get a higher acceptance rate — creators can see
+              your budget is committed before they commit filming time.
             </p>
           </div>
 

@@ -18,6 +18,10 @@ export const campaignApi = createApi({
       query: () => '/campaigns/mine',
       providesTags: ['MyCampaigns']
     }),
+    getCampaign: builder.query({
+      query: (id) => `/campaigns/${id}`,
+      providesTags: (result, error, id) => [{ type: 'Campaign', id }]
+    }),
     publishCampaign: builder.mutation({
       query: (id) => ({ url: `/campaigns/${id}/publish`, method: 'POST' }),
       invalidatesTags: ['MyCampaigns', 'Campaign']
@@ -25,6 +29,13 @@ export const campaignApi = createApi({
     closeCampaign: builder.mutation({
       query: (id) => ({ url: `/campaigns/${id}/close`, method: 'POST' }),
       invalidatesTags: ['MyCampaigns', 'Campaign']
+    }),
+    fundCampaign: builder.mutation({
+      query: (id) => ({ url: `/campaigns/${id}/fund`, method: 'POST' }),
+      invalidatesTags: (result, error, id) => [
+        { type: 'Campaign', id },
+        'MyCampaigns'
+      ]
     }),
     invite: builder.mutation({
       query: ({ campaignId, creatorId, message }) => ({
@@ -79,8 +90,10 @@ export const campaignApi = createApi({
 export const {
   useCreateCampaignMutation,
   useMyCampaignsQuery,
+  useGetCampaignQuery,
   usePublishCampaignMutation,
   useCloseCampaignMutation,
+  useFundCampaignMutation,
   useInviteMutation,
   useListApplicationsQuery,
   useDecideApplicationMutation,
