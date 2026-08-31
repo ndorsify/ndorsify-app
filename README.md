@@ -25,13 +25,13 @@ The dev server runs on http://localhost:3000.
 
 ## Common commands
 
-| Command | What it does |
-|---|---|
-| `npm start` | Run the dev server |
-| `npm run build` | Production build to `build/` |
-| `npm test` | Jest in watch mode (`CI=true npm test` runs once) |
-| `npm run format` | Auto-format with Prettier |
-| `npm run check` | Check formatting |
+| Command          | What it does                                      |
+| ---------------- | ------------------------------------------------- |
+| `npm start`      | Run the dev server                                |
+| `npm run build`  | Production build to `build/`                      |
+| `npm test`       | Jest in watch mode (`CI=true npm test` runs once) |
+| `npm run format` | Auto-format with Prettier                         |
+| `npm run check`  | Check formatting                                  |
 
 ## Project structure
 

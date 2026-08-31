@@ -12,13 +12,16 @@ that makes any screen work. Build this first.
 ---
 
 ## 1. Fix the broken scaffold (prerequisite)
+
 The current scaffold is inert. As part of standing up the store:
+
 - Mount `<Provider store={store}>` in `src/index.js` (currently missing).
 - Fix `src/store` to import the real root reducer (was `../reducer`, a bad path).
 - Replace the placeholder `endpoint = 'API BASE URL'` with real config (§3).
 - Remove/replace the empty `redux-thunk/userLogin.js` (RTK Query replaces it).
 
 ## 2. Project structure
+
 ```
 src/
 ├── app/
@@ -37,12 +40,15 @@ src/
 ├── routes/                 # route constants + <AppRoutes>
 └── App.js                  # RouterProvider / <BrowserRouter>
 ```
+
 Feature-first: each `features/<x>/` owns its RTK Query api slice, any local slice,
 and its screens.
 
 ## 3. Configuration & multiple service base URLs
+
 Five services on five ports and **no gateway yet**. Each RTK Query api gets its
 own `baseUrl` from env (CRA reads `REACT_APP_*` at build time):
+
 ```
 REACT_APP_USERS_URL=http://localhost:1000
 REACT_APP_PROFILE_URL=http://localhost:6000
@@ -50,6 +56,7 @@ REACT_APP_MESSAGING_URL=http://localhost:3000
 REACT_APP_DISCOVERY_URL=http://localhost:9000
 REACT_APP_DYNAMIC_CONTENT_URL=http://localhost:5000
 ```
+
 `lib/config.js` centralizes these. **When the API gateway lands, collapse to one
 `REACT_APP_API_URL` and drop the per-service vars** — the api slices are the only
 place that changes.
@@ -58,6 +65,7 @@ place that changes.
 > the platform spec's CORS section). Without it, every browser call fails.
 
 ## 4. Auth token lifecycle (the core of the foundation)
+
 users-service issues a short-lived **access JWT** + a rotating **refresh token**.
 
 - **Storage:** access token in memory (Redux `authSlice`); refresh token in the
@@ -80,6 +88,7 @@ authSlice: { accessToken (memory), refreshToken (persisted),
 ```
 
 ## 5. Routing & guards
+
 - `react-router-dom` v6, routes from `src/routes/`.
 - **Public:** `/login`, `/register`, `/forgot-password`, `/reset-password`,
   `/verify-email`.
@@ -90,6 +99,7 @@ authSlice: { accessToken (memory), refreshToken (persisted),
   onboarding incomplete → onboarding; else → role home.
 
 ## 6. Cross-cutting UI concerns
+
 - **Loading/empty/error states** are first-class: RTK Query's
   `isLoading/isError` drive a shared `<Spinner>` / `<ErrorText>` / empty states.
   No screen ships without all three.
@@ -101,17 +111,20 @@ authSlice: { accessToken (memory), refreshToken (persisted),
   `#FF914D`) into CSS variables / a theme module before building more screens.
 
 ## 7. Build & deploy
+
 - CRA build (`npm run build`); note the react-scripts 4 + modern Node OpenSSL
   flag (`NODE_OPTIONS=--openssl-legacy-provider`).
 - Host on Vercel/Netlify; env vars per environment. Point the `REACT_APP_*_URL`
   vars at the deployed services (or the gateway).
 
 ## 8. Testing
+
 - Component/integration tests with React Testing Library (already present).
 - Mock RTK Query endpoints (msw or RTK's `fakeBaseQuery`) — no live backend in
   unit tests.
 
 ## Definition of done (foundation)
+
 - [ ] Store mounted; scaffold bugs fixed.
 - [ ] Router with public/protected/role guards.
 - [ ] `baseQueryWithReauth` attaches tokens and refreshes on 401.

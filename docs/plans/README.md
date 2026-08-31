@@ -7,6 +7,6 @@ Future-facing blueprints: what we intend to build and how, before we build it.
 - **`technical-specifications/`** — Tech specs. How a feature will be built:
   data models, APIs, service boundaries, trade-offs. Usually pairs with a PRD.
 
-Plans describe the *future*; once a decision is locked, capture the "why" as an
+Plans describe the _future_; once a decision is locked, capture the "why" as an
 [ADR](../adr/). Workspace-wide roadmaps (spanning both repos) live at the
 workspace root, not here.

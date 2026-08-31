@@ -5,6 +5,24 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 Command reference for the Ndorsify web client. For architecture see
 [`AGENTS.md`](AGENTS.md); for decisions see [`docs/adr/`](docs/adr/).
 
+## Implementing from the design system
+
+Screens come from the **Ndorsify design-system artboards** (the "Ndorsify Canvas"
+artifact). Each artboard is drawn as a rounded card floating on a grey canvas,
+grouped into "Turns" (e.g. `3a Sign up`, `2b Offer detail`).
+
+**The artboard's outer card frame is design reference only — never reproduce it.**
+The grey canvas, the rounded card border/radius/shadow, and the artboard chrome
+around each screen are just how the design tool presents mocks. **The content
+inside the card is the actual full-bleed web window** — it must fill the viewport
+edge to edge (no centered floating card, no outer gutter/border/radius/shadow)
+unless the design explicitly shows an inner card as part of the UI.
+
+Match everything *inside* the frame faithfully — layout, spacing, colours, copy,
+component structure — using the shared design system in
+[`src/styles/ndorsify.css`](src/styles/ndorsify.css) (`nd-*` classes) and
+[`src/components/common/ds.js`](src/components/common/ds.js).
+
 ## Toolchain
 
 Node (works on Node 24 / npm 11). Dependencies are installed with `npm install`.

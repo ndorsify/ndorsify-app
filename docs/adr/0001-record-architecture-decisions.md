@@ -10,7 +10,7 @@ Accepted
 
 We need to record the architectural decisions made on this project — why we
 chose an approach, what we traded away, and what became true as a result. Kept
-in the repo, these records give coding agents and new engineers the *reasoning*
+in the repo, these records give coding agents and new engineers the _reasoning_
 behind the code, which the code itself cannot show.
 
 ## Decision
