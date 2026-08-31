@@ -11,7 +11,11 @@ export const collaborationApi = createApi({
   endpoints: (builder) => ({
     myCollaborations: builder.query({
       query: () => '/collaborations/mine',
-      providesTags: ['Collaborations']
+      providesTags: ['Collaborations'],
+      // Reviews/submissions come from the other party in a separate session,
+      // so this party's cache can't be invalidated by their mutation — refetch
+      // whenever the board is revisited instead of trusting the local cache.
+      refetchOnMountOrArgChange: true
     }),
     submitDeliverable: builder.mutation({
       query: ({ deliverableId, file_refs, note }) => ({
