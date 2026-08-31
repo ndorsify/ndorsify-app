@@ -1,0 +1,116 @@
+.hm-greet {
+  font-size: clamp(1.4rem, 2.6vw, 1.625rem);
+  font-weight: 800;
+  letter-spacing: -0.025em;
+  margin: 0;
+}
+
+.hm-split {
+  display: grid;
+  grid-template-columns: 1fr 348px;
+  gap: 16px;
+  align-items: start;
+}
+
+/* Table rows */
+.hm-campaign-row {
+  display: grid;
+  grid-template-columns: 1.5fr 1fr 1.3fr 0.9fr 0.9fr;
+  gap: 14px;
+}
+.hm-invite-row {
+  display: grid;
+  grid-template-columns: 1.7fr 0.9fr 0.9fr 210px;
+  gap: 16px;
+  align-items: center;
+  padding: 16px;
+  border-radius: 14px;
+  border: 1px solid var(--line);
+  background: var(--surface);
+  margin-bottom: 12px;
+}
+.hm-invite-row--warn {
+  border-color: #f0dcae;
+  background: #fffdf7;
+}
+
+.hm-avatars {
+  display: flex;
+  align-items: center;
+}
+.hm-avatars .nd-avatar:not(:first-child) {
+  margin-left: -12px;
+}
+
+.hm-activity {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+}
+.hm-activity__dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 999px;
+  margin-top: 6px;
+  flex: none;
+}
+
+.hm-todo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.hm-check {
+  width: 16px;
+  height: 16px;
+  border-radius: 5px;
+  border: 1px solid var(--line-2);
+  color: #fff;
+  font-size: 0.55rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+}
+.hm-check.is-done {
+  background: var(--accent);
+  border-color: var(--accent);
+}
+
+.hm-sched {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+}
+.lg-swatch {
+  width: 8px;
+  height: 8px;
+  border-radius: 2px;
+  display: inline-block;
+}
+
+.hm-sched__day {
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  color: var(--ink-faint);
+  width: 42px;
+  flex: none;
+  padding-top: 2px;
+}
+
+@media (max-width: 900px) {
+  .hm-split {
+    grid-template-columns: 1fr;
+  }
+  .hm-campaign-row {
+    grid-template-columns: 1.6fr 1fr 0.8fr;
+  }
+  .hm-campaign-row > :nth-child(3),
+  .hm-campaign-row > :nth-child(4) {
+    display: none;
+  }
+  .hm-invite-row {
+    grid-template-columns: 1fr;
+  }
+}

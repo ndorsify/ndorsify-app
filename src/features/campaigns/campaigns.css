@@ -26,19 +26,59 @@
   border-radius: 999px;
   font-weight: 600;
 }
-.badge.draft { background: #f0ece4; color: #7a6f5f; }
-.badge.open { background: #e2f3e6; color: #2e7d46; }
-.badge.closed { background: #f3e2e2; color: #b23b3b; }
-.badge.archived { background: #eee; color: #777; }
-.badge.pending { background: #fdeede; color: #b5730e; }
-.badge.accepted { background: #e2f3e6; color: #2e7d46; }
-.badge.declined, .badge.rejected { background: #f3e2e2; color: #b23b3b; }
-.badge.submitted { background: #e6eef7; color: #2b62c0; }
-.badge.todo { background: #f0ece4; color: #7a6f5f; }
-.badge.in_progress { background: #e6eef7; color: #2b62c0; }
-.badge.changes_requested { background: #fdeede; color: #b5730e; }
-.badge.approved { background: #e2f3e6; color: #2e7d46; }
-.badge.live { background: #d8f0de; color: #1f7a34; }
+.badge.draft {
+  background: var(--warn-soft);
+  color: var(--warn-ink);
+}
+.badge.open {
+  background: var(--success-soft);
+  color: var(--success-ink);
+}
+.badge.closed {
+  background: var(--danger-soft);
+  color: var(--danger);
+}
+.badge.archived {
+  background: var(--canvas);
+  color: var(--ink-soft);
+}
+.badge.pending {
+  background: var(--warn-soft);
+  color: var(--warn-ink);
+}
+.badge.accepted {
+  background: var(--success-soft);
+  color: var(--success-ink);
+}
+.badge.declined,
+.badge.rejected {
+  background: var(--danger-soft);
+  color: var(--danger);
+}
+.badge.submitted {
+  background: var(--accent-soft);
+  color: var(--accent-press);
+}
+.badge.todo {
+  background: var(--canvas);
+  color: var(--ink-soft);
+}
+.badge.in_progress {
+  background: var(--accent-soft);
+  color: var(--accent-press);
+}
+.badge.changes_requested {
+  background: var(--warn-soft);
+  color: var(--warn-ink);
+}
+.badge.approved {
+  background: var(--success-soft);
+  color: var(--success-ink);
+}
+.badge.live {
+  background: var(--success-soft);
+  color: var(--success-ink);
+}
 
 .row-actions {
   display: flex;
@@ -63,7 +103,9 @@
   border-bottom: 1px solid var(--line);
   font-size: 0.9rem;
 }
-.app-row:last-child { border-bottom: none; }
+.app-row:last-child {
+  border-bottom: none;
+}
 
 .inline-form {
   display: flex;
@@ -93,6 +135,11 @@
   grid-template-columns: 1fr 1fr;
   gap: 10px;
 }
-.campaign-form .full { grid-column: 1 / -1; }
+.campaign-form .full {
+  grid-column: 1 / -1;
+}
 .campaign-form input,
-.campaign-form textarea { width: 100%; box-sizing: border-box; }
+.campaign-form textarea {
+  width: 100%;
+  box-sizing: border-box;
+}

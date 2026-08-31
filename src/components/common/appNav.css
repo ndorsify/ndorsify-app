@@ -1,41 +1,134 @@
-.appnav {
+.nd-topnav {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 10px 20px;
+  gap: 20px;
+  padding: 14px 28px;
   background: var(--surface);
-  border-bottom: 1px solid var(--line);
+  border-bottom: 1px solid var(--line-soft);
+  position: sticky;
+  top: 0;
+  z-index: 20;
 }
 
-.appnav-brand img {
-  height: 32px;
-  width: auto;
-  display: block;
-}
-
-.appnav-links {
+.nd-topnav__left {
   display: flex;
   align-items: center;
-  gap: 18px;
+  gap: 30px;
+  min-width: 0;
 }
 
-.appnav-link {
+/* Brand mark */
+.nd-brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
   text-decoration: none;
-  color: var(--ink-soft);
-  font-size: 0.95rem;
+}
+.nd-brand:hover {
+  text-decoration: none;
+}
+.nd-brand__mark {
+  width: 18px;
+  height: 18px;
+  border-radius: 6px;
+  background: var(--accent);
+  flex: none;
+}
+.nd-brand__word {
+  font-size: 1.12rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  color: var(--ink);
+}
+.nd-brand__role {
+  padding: 3px 9px;
+  border-radius: var(--radius-pill);
+  background: var(--accent-soft);
+  color: var(--accent-press);
+  font-family: var(--font-mono);
+  font-size: 0.6rem;
+  letter-spacing: 0.06em;
 }
 
-.appnav-link.active {
-  color: var(--accent);
+/* Nav links */
+.nd-nav {
+  display: flex;
+  align-items: center;
+  gap: 22px;
+}
+.nd-nav__link {
+  font-size: 0.88rem;
   font-weight: 600;
+  color: var(--ink-soft);
+  text-decoration: none;
+  padding-bottom: 2px;
+  border-bottom: 2px solid transparent;
+}
+.nd-nav__link:hover {
+  color: var(--ink-2);
+  text-decoration: none;
+}
+.nd-nav__link.is-active {
+  color: var(--accent);
+  border-bottom-color: var(--accent);
 }
 
-.appnav-logout {
+/* Right cluster */
+.nd-topnav__right {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+.nd-avail {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 14px;
+  border-radius: 10px;
+  background: var(--success-soft);
+  color: var(--success-ink);
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+.nd-topnav__avatar {
+  width: 32px;
+  height: 32px;
+  font-size: 0.62rem;
+}
+.nd-topnav__logout {
   border: 1px solid var(--line);
   background: transparent;
   color: var(--ink-soft);
-  padding: 6px 12px;
-  border-radius: 999px;
+  padding: 7px 13px;
+  border-radius: var(--radius-pill);
   cursor: pointer;
-  font-size: 0.9rem;
+  font: inherit;
+  font-size: 0.8rem;
+}
+.nd-topnav__logout:hover {
+  color: var(--ink-2);
+  border-color: var(--ink-faint);
+}
+
+@media (max-width: 900px) {
+  .nd-topnav {
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+  .nd-topnav__left {
+    gap: 16px;
+    width: 100%;
+    justify-content: space-between;
+  }
+  .nd-nav {
+    order: 3;
+    width: 100%;
+    overflow-x: auto;
+    gap: 16px;
+    padding-bottom: 2px;
+  }
+  .nd-nav__link {
+    white-space: nowrap;
+  }
 }

@@ -10,19 +10,29 @@ export const discoveryApi = createApi({
   tagTypes: ['Shortlist'],
   endpoints: (builder) => ({
     searchCreators: builder.query({
-      // params: { q, niche: [], min_followers, max_followers, min_engagement, location, sort }
-      query: (params) => {
+      // params: { q, niche: [], platform: [], min_followers, max_followers,
+      //   min_engagement, min_rate, max_rate, verified, location, sort }
+      query: (params = {}) => {
         const search = new URLSearchParams()
         if (params.q) search.set('q', params.q)
         ;(params.niche || []).forEach((n) => search.append('niche', n))
-        if (params.min_followers) search.set('min_followers', params.min_followers)
-        if (params.max_followers) search.set('max_followers', params.max_followers)
-        if (params.min_engagement)
+        ;(params.platform || []).forEach((p) => search.append('platform', p))
+        if (params.min_followers != null)
+          search.set('min_followers', params.min_followers)
+        if (params.max_followers != null)
+          search.set('max_followers', params.max_followers)
+        if (params.min_engagement != null)
           search.set('min_engagement', params.min_engagement)
+        if (params.min_rate != null) search.set('min_rate', params.min_rate)
+        if (params.max_rate != null) search.set('max_rate', params.max_rate)
+        if (params.verified) search.set('verified', 'true')
         if (params.location) search.set('location', params.location)
         if (params.sort) search.set('sort', params.sort)
         return `/discovery/creators?${search.toString()}`
       }
+    }),
+    getCreator: builder.query({
+      query: (userId) => `/discovery/creators/${userId}`
     }),
     createShortlist: builder.mutation({
       query: (body) => ({ url: '/discovery/shortlists', method: 'POST', body })
@@ -45,6 +55,7 @@ export const discoveryApi = createApi({
 export const {
   useSearchCreatorsQuery,
   useLazySearchCreatorsQuery,
+  useGetCreatorQuery,
   useCreateShortlistMutation,
   useAddToShortlistMutation,
   useGetShortlistQuery

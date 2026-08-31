@@ -1,0 +1,585 @@
+/* ==========================================================================
+   Ndorsify design system — shared component classes (indigo rebrand).
+   Derived from the "Ndorsify Canvas" design-system artboard.
+   ========================================================================== */
+
+/* ---- Page shells --------------------------------------------------------- */
+.nd-page {
+  max-width: 1240px;
+  margin: 0 auto;
+  padding: 28px 40px 96px;
+}
+.nd-page--narrow {
+  max-width: 760px;
+}
+.nd-page--flush {
+  max-width: none;
+  padding: 0;
+}
+
+.nd-page-head {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+  margin-bottom: 22px;
+}
+.nd-page-head__titles {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+/* ---- Type ---------------------------------------------------------------- */
+.nd-display {
+  font-size: clamp(2rem, 4vw, 3.75rem);
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  line-height: 1.03;
+  margin: 0;
+}
+.nd-h1 {
+  font-size: clamp(1.4rem, 2.4vw, 1.65rem);
+  font-weight: 800;
+  letter-spacing: -0.025em;
+  margin: 0;
+}
+.nd-h2 {
+  font-size: 1.06rem;
+  font-weight: 700;
+  margin: 0;
+}
+.nd-h3 {
+  font-size: 0.95rem;
+  font-weight: 700;
+  margin: 0;
+}
+.nd-sub {
+  font-size: 0.9rem;
+  color: var(--ink-soft);
+  margin: 0;
+}
+.nd-eyebrow {
+  font-family: var(--font-mono);
+  font-size: 0.69rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+}
+.nd-mono {
+  font-family: var(--font-mono);
+}
+.nd-muted {
+  color: var(--ink-faint);
+}
+.nd-ink2 {
+  color: var(--ink-2);
+}
+
+/* ---- Cards --------------------------------------------------------------- */
+.nd-card {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-card);
+  padding: 22px;
+}
+.nd-card--tight {
+  padding: 18px;
+}
+.nd-card--raise {
+  box-shadow: var(--shadow-raise);
+}
+.nd-card--accent {
+  border-color: var(--accent);
+  box-shadow: var(--shadow-card), 0 14px 30px rgba(87, 79, 224, 0.12);
+}
+.nd-card--dark {
+  background: var(--ink);
+  color: #fff;
+  border: none;
+}
+.nd-card--dark .nd-eyebrow,
+.nd-card--dark .nd-muted {
+  color: var(--ink-faint);
+}
+
+.nd-card-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+/* ---- Buttons ------------------------------------------------------------- */
+.nd-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  font-family: var(--font-sans);
+  font-size: 0.85rem;
+  font-weight: 600;
+  padding: 10px 18px;
+  border-radius: var(--radius-sm);
+  border: 1px solid transparent;
+  cursor: pointer;
+  text-decoration: none;
+  line-height: 1;
+  transition: background 0.15s ease, transform 0.05s ease, box-shadow 0.15s ease;
+  white-space: nowrap;
+}
+.nd-btn:active {
+  transform: translateY(1px);
+}
+.nd-btn:disabled {
+  opacity: 0.55;
+  cursor: default;
+}
+.nd-btn--primary {
+  background: var(--accent);
+  color: #fff;
+  box-shadow: var(--shadow-accent);
+}
+.nd-btn--primary:hover {
+  background: var(--accent-press);
+  color: #fff;
+}
+.nd-btn--secondary {
+  background: var(--surface);
+  border-color: #dedee8;
+  color: var(--ink);
+}
+.nd-btn--secondary:hover {
+  border-color: var(--ink-faint);
+  color: var(--ink);
+}
+.nd-btn--ghost {
+  background: transparent;
+  color: var(--accent);
+}
+.nd-btn--ghost:hover {
+  background: var(--accent-soft);
+  color: var(--accent-press);
+}
+.nd-btn--dark {
+  background: var(--ink);
+  color: #fff;
+}
+.nd-btn--dark:hover {
+  background: #000;
+  color: #fff;
+}
+.nd-btn--danger {
+  background: var(--surface);
+  border-color: #e6c4c2;
+  color: var(--danger);
+}
+.nd-btn--sm {
+  padding: 8px 13px;
+  font-size: 0.78rem;
+}
+.nd-btn--lg {
+  padding: 13px 22px;
+  font-size: 0.95rem;
+}
+.nd-btn--block {
+  width: 100%;
+}
+
+/* ---- Pills & badges ------------------------------------------------------ */
+.nd-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 11px;
+  border-radius: var(--radius-pill);
+  font-size: 0.72rem;
+  font-weight: 700;
+  background: var(--canvas);
+  color: var(--ink-2);
+  border: 1px solid transparent;
+  white-space: nowrap;
+}
+.nd-pill--accent {
+  background: var(--accent-soft);
+  color: var(--accent-press);
+}
+.nd-pill--success {
+  background: var(--success-soft);
+  color: var(--success-ink);
+}
+.nd-pill--warn {
+  background: var(--warn-soft);
+  color: var(--warn-ink);
+}
+.nd-pill--outline {
+  background: var(--surface);
+  border-color: var(--line);
+  color: var(--ink-2);
+  font-weight: 600;
+}
+.nd-pill--code {
+  font-family: var(--font-mono);
+  font-weight: 500;
+  letter-spacing: 0.06em;
+}
+
+.nd-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: var(--radius-pill);
+  background: var(--success);
+  flex: none;
+}
+
+/* ---- Segmented control / tabs ------------------------------------------- */
+.nd-seg {
+  display: inline-flex;
+  gap: 2px;
+  padding: 4px;
+  border-radius: 12px;
+  background: var(--surface);
+  border: 1px solid var(--line-2);
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+.nd-seg__item {
+  padding: 8px 14px;
+  border-radius: 9px;
+  color: var(--ink-faint);
+  cursor: pointer;
+  border: none;
+  background: transparent;
+  font: inherit;
+}
+.nd-seg__item.is-active {
+  background: var(--accent-soft);
+  color: var(--accent-press);
+}
+
+/* ---- KPI / stat tiles ---------------------------------------------------- */
+.nd-kpis {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+}
+.nd-kpi {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 20px;
+  border-radius: var(--radius);
+  background: var(--surface);
+  border: 1px solid var(--line);
+  box-shadow: var(--shadow-card);
+}
+.nd-kpi__label {
+  font-family: var(--font-mono);
+  font-size: 0.69rem;
+  letter-spacing: 0.08em;
+  color: var(--ink-soft);
+}
+.nd-kpi__value {
+  font-size: 1.875rem;
+  font-weight: 800;
+  letter-spacing: -0.025em;
+}
+.nd-kpi__foot {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.nd-delta {
+  padding: 3px 8px;
+  border-radius: var(--radius-pill);
+  font-family: var(--font-mono);
+  font-size: 0.69rem;
+  font-weight: 500;
+}
+.nd-delta--up {
+  background: var(--success-soft);
+  color: var(--success-ink);
+}
+.nd-delta--down {
+  background: var(--danger-soft);
+  color: var(--danger);
+}
+.nd-delta--flat {
+  background: var(--canvas);
+  color: var(--ink-soft);
+}
+
+/* ---- Avatars ------------------------------------------------------------- */
+.nd-avatar {
+  border-radius: var(--radius-pill);
+  background: repeating-linear-gradient(
+    135deg,
+    #e7e7ee 0 6px,
+    #f3f3f8 6px 12px
+  );
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-mono);
+  color: var(--ink-soft);
+  flex: none;
+  overflow: hidden;
+}
+.nd-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.nd-avatar--sq {
+  border-radius: 10px;
+}
+
+/* ---- Meter --------------------------------------------------------------- */
+.nd-meter {
+  height: 6px;
+  border-radius: var(--radius-pill);
+  background: #f0f0f5;
+  overflow: hidden;
+}
+.nd-meter__fill {
+  height: 100%;
+  border-radius: var(--radius-pill);
+  background: var(--accent);
+}
+
+/* ---- Toggle -------------------------------------------------------------- */
+.nd-toggle {
+  width: 40px;
+  height: 22px;
+  border-radius: var(--radius-pill);
+  background: var(--line-2);
+  padding: 3px;
+  display: flex;
+  cursor: pointer;
+  border: none;
+  flex: none;
+  transition: background 0.15s ease;
+}
+.nd-toggle__knob {
+  width: 16px;
+  height: 16px;
+  border-radius: var(--radius-pill);
+  background: #fff;
+  transition: margin 0.15s ease;
+}
+.nd-toggle.is-on {
+  background: var(--accent);
+}
+.nd-toggle.is-on .nd-toggle__knob {
+  margin-left: auto;
+}
+
+/* ---- Inputs -------------------------------------------------------------- */
+.nd-input,
+.nd-textarea,
+.nd-select {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 11px 14px;
+  border: 1px solid var(--line-2);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  color: var(--ink);
+  font: inherit;
+  font-size: 0.9rem;
+}
+.nd-input:focus,
+.nd-textarea:focus,
+.nd-select:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-soft);
+}
+.nd-textarea {
+  min-height: 92px;
+  resize: vertical;
+}
+.nd-field {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  margin-bottom: 16px;
+}
+.nd-field > label {
+  font-family: var(--font-mono);
+  font-size: 0.69rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+}
+.nd-search {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 15px;
+  border-radius: 12px;
+  background: var(--surface);
+  border: 1px solid var(--line-2);
+}
+.nd-search input {
+  border: none;
+  outline: none;
+  background: transparent;
+  font: inherit;
+  font-size: 0.9rem;
+  flex: 1;
+  color: var(--ink);
+}
+.nd-search__ring {
+  width: 14px;
+  height: 14px;
+  border-radius: var(--radius-pill);
+  border: 2px solid #b4b4c0;
+  flex: none;
+}
+
+/* ---- Tables (grid rows) -------------------------------------------------- */
+.nd-thead {
+  font-family: var(--font-mono);
+  font-size: 0.63rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+  padding-bottom: 10px;
+  border-bottom: 1px solid #f0f0f5;
+}
+.nd-trow {
+  align-items: center;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--canvas);
+}
+.nd-trow:last-child {
+  border-bottom: none;
+}
+
+/* ---- Chart placeholder --------------------------------------------------- */
+.nd-chart-ph {
+  border-radius: 12px;
+  border: 1px dashed #d6d6e2;
+  background: repeating-linear-gradient(
+    135deg,
+    #f7f7fb 0 8px,
+    #ffffff 8px 16px
+  );
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-mono);
+  font-size: 0.69rem;
+  color: var(--ink-faint);
+  text-align: center;
+  padding: 10px;
+}
+
+/* ---- Dashed add row ------------------------------------------------------ */
+.nd-add {
+  padding: 14px;
+  border-radius: 14px;
+  border: 1px dashed #d6d6e2;
+  text-align: center;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--accent);
+  background: var(--surface);
+  cursor: pointer;
+}
+
+/* ---- Check / verified marks --------------------------------------------- */
+.nd-check {
+  width: 16px;
+  height: 16px;
+  border-radius: 5px;
+  border: 1px solid var(--line-2);
+  color: #fff;
+  font-size: 0.55rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+}
+.nd-check.is-done {
+  background: var(--accent);
+  border-color: var(--accent);
+}
+.nd-verified {
+  width: 15px;
+  height: 15px;
+  border-radius: var(--radius-pill);
+  background: var(--success);
+  color: #fff;
+  font-size: 0.55rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+}
+
+/* ---- States -------------------------------------------------------------- */
+.nd-empty {
+  padding: 40px 20px;
+  text-align: center;
+  color: var(--ink-faint);
+  font-size: 0.9rem;
+}
+.nd-error {
+  color: var(--danger);
+  font-size: 0.85rem;
+}
+.nd-ok {
+  color: var(--success-ink);
+  font-size: 0.85rem;
+}
+
+/* ---- Utilities ----------------------------------------------------------- */
+.nd-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.nd-col {
+  display: flex;
+  flex-direction: column;
+}
+.nd-between {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+.nd-wrap {
+  flex-wrap: wrap;
+}
+.nd-gap-6 {
+  gap: 6px;
+}
+.nd-gap-8 {
+  gap: 8px;
+}
+.nd-gap-16 {
+  gap: 16px;
+}
+.nd-grow {
+  flex: 1;
+  min-width: 0;
+}
+.nd-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.nd-sample-note {
+  font-family: var(--font-mono);
+  font-size: 0.66rem;
+  letter-spacing: 0.05em;
+  color: var(--ink-faint);
+}

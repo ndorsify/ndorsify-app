@@ -1,165 +1,416 @@
-import { useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { useSelector } from 'react-redux'
+import { Link } from 'react-router-dom'
 
 import './discovery.css'
-import '../profile/profile.css'
 import AppNav from '../../components/common/AppNav'
-import { Button } from '../../components/common/button'
+import { money } from '../../lib/format'
+import { Avatar } from '../../components/common/ds'
+import { PAGE_ROUTES, buildPath } from '../../routes'
 import { apiErrorMessage } from '../../lib/errors'
 import { selectUser } from '../auth/authSlice'
-import { splitList } from '../profile/helpers'
 import {
   useAddToShortlistMutation,
   useCreateShortlistMutation,
   useLazySearchCreatorsQuery
 } from './discoveryApi'
 
-const ORANGE = '#FF914D'
+const PLATFORMS = ['Instagram', 'TikTok', 'YouTube', 'X']
+
+const SIZE_BUCKETS = [
+  { key: 'nano', label: 'Nano · <10K', min: 0, max: 9999 },
+  { key: 'micro', label: 'Micro · 10–100K', min: 10000, max: 99999 },
+  { key: 'mid', label: 'Mid · 100–500K', min: 100000, max: 499999 },
+  { key: 'macro', label: 'Macro · 500K+', min: 500000, max: null }
+]
+
+const RATE_FLOOR = 750
+const RATE_CEIL = 5000
+
+const compact = (n) => {
+  const v = Number(n)
+  if (!v) return '—'
+  if (v >= 1000000) return `${(v / 1000000).toFixed(1)}M`
+  if (v >= 1000) return `${Math.round(v / 1000)}K`
+  return `${v}`
+}
+
+const toCard = (c) => ({
+  id: c.user_id,
+  initials: (c.display_name || 'C').slice(0, 2).toUpperCase(),
+  name: c.display_name || `Creator #${c.user_id}`,
+  handle: c.handle ? `@${c.handle}` : `#${c.user_id}`,
+  location: c.location || '—',
+  niche: (c.niches || [])[0] || 'Creator',
+  platform: (c.platforms || [])[0] || '—',
+  followers: compact(c.follower_count),
+  engagement: c.engagement_rate ? `${c.engagement_rate}%` : '—',
+  rating: c.avg_rating ? `${c.avg_rating}★` : '—'
+})
+
+// Multi-select bucket keys → a single follower range for the query.
+const followersRange = (sizeKeys) => {
+  if (!sizeKeys.length) return {}
+  const chosen = SIZE_BUCKETS.filter((b) => sizeKeys.includes(b.key))
+  const range = { min_followers: Math.min(...chosen.map((b) => b.min)) }
+  const maxes = chosen.map((b) => b.max)
+  if (!maxes.includes(null)) range.max_followers = Math.max(...maxes)
+  return range
+}
 
 export default function DiscoverPage() {
-  const user = useSelector(selectUser)
-  const isBrand = user?.role === 'brand'
+  const isBrand = useSelector(selectUser)?.role === 'brand'
 
-  const [filters, setFilters] = useState({
-    q: '',
-    niche: '',
-    min_followers: '',
-    sort: 'followers'
-  })
-  const [runSearch, { data: results = [], isFetching, error }] =
+  const [q, setQ] = useState('')
+  const [appliedQ, setAppliedQ] = useState('')
+  const [sort, setSort] = useState('followers')
+  const [platforms, setPlatforms] = useState([])
+  const [sizes, setSizes] = useState([])
+  const [verifiedOnly, setVerifiedOnly] = useState(false)
+  const [minRate, setMinRate] = useState(RATE_FLOOR)
+  const [maxRate, setMaxRate] = useState(RATE_CEIL)
+
+  const [runSearch, { data: results, isFetching, error }] =
     useLazySearchCreatorsQuery()
 
-  // A single active shortlist for this session (backend has no "list mine" yet).
-  const [shortlist, setShortlist] = useState(null) // {id, name, creator_ids}
-  const [shortlistName, setShortlistName] = useState('')
+  const [shortlist, setShortlist] = useState(null)
   const [createShortlist] = useCreateShortlistMutation()
   const [addToShortlist] = useAddToShortlistMutation()
 
-  const set = (k) => (e) => setFilters({ ...filters, [k]: e.target.value })
+  // Everything except the free-text box auto-applies; the query text applies on
+  // submit (via appliedQ). Recomputed params drive the effect below.
+  const filterParams = useCallback(() => {
+    const p = { sort, q: appliedQ }
+    if (platforms.length) p.platform = platforms
+    Object.assign(p, followersRange(sizes))
+    if (verifiedOnly) p.verified = true
+    if (minRate > RATE_FLOOR) p.min_rate = minRate
+    if (maxRate < RATE_CEIL) p.max_rate = maxRate
+    return p
+  }, [sort, appliedQ, platforms, sizes, verifiedOnly, minRate, maxRate])
+
+  useEffect(() => {
+    runSearch(filterParams())
+  }, [filterParams, runSearch])
+
+  const toggle = (list, setList, value) =>
+    setList(
+      list.includes(value) ? list.filter((v) => v !== value) : [...list, value]
+    )
 
   const onSearch = (e) => {
     e.preventDefault()
-    runSearch({
-      q: filters.q,
-      niche: splitList(filters.niche),
-      min_followers: filters.min_followers,
-      sort: filters.sort
-    })
+    setAppliedQ(q)
   }
 
-  const onCreateShortlist = async () => {
-    if (!shortlistName.trim()) return
-    try {
-      const sl = await createShortlist({ name: shortlistName.trim() }).unwrap()
-      setShortlist({ ...sl, creator_ids: [] })
-      setShortlistName('')
-    } catch {
-      /* ignore */
-    }
+  const resetAll = () => {
+    setQ('')
+    setAppliedQ('')
+    setSort('followers')
+    setPlatforms([])
+    setSizes([])
+    setVerifiedOnly(false)
+    setMinRate(RATE_FLOOR)
+    setMaxRate(RATE_CEIL)
   }
 
-  const onAdd = async (creatorId) => {
-    if (!shortlist) return
+  // Active-filter chips, each removable.
+  const chips = [
+    ...(appliedQ
+      ? [
+          {
+            label: `“${appliedQ}”`,
+            clear: () => {
+              setQ('')
+              setAppliedQ('')
+            }
+          }
+        ]
+      : []),
+    ...platforms.map((p) => ({
+      label: p,
+      clear: () => toggle(platforms, setPlatforms, p)
+    })),
+    ...sizes.map((k) => ({
+      label: SIZE_BUCKETS.find((b) => b.key === k).label,
+      clear: () => toggle(sizes, setSizes, k)
+    })),
+    ...(verifiedOnly
+      ? [{ label: 'ID verified', clear: () => setVerifiedOnly(false) }]
+      : []),
+    ...(minRate > RATE_FLOOR || maxRate < RATE_CEIL
+      ? [
+          {
+            label: `${money(minRate)}–${money(maxRate)}`,
+            clear: () => {
+              setMinRate(RATE_FLOOR)
+              setMaxRate(RATE_CEIL)
+            }
+          }
+        ]
+      : [])
+  ]
+
+  const cards = Array.isArray(results) ? results.map(toCard) : []
+
+  const onInvite = async (creatorId) => {
+    if (!isBrand) return
     try {
+      let sl = shortlist
+      if (!sl) {
+        sl = await createShortlist({ name: 'Discovery shortlist' }).unwrap()
+        setShortlist(sl)
+      }
       const detail = await addToShortlist({
-        shortlistId: shortlist.id,
+        shortlistId: sl.id,
         creatorId
       }).unwrap()
       setShortlist(detail)
     } catch {
-      /* ignore */
+      /* error surfaced by the mutation; ignore here */
     }
   }
+  const invited = new Set(shortlist?.creator_ids || [])
 
   return (
     <>
       <AppNav />
-      <div className="page">
-        <h1>Discover creators</h1>
-        <p className="subtle">Search the creator directory and build a shortlist.</p>
+      <div className="nd-page nd-page--flush">
+        <div className="dc">
+          {/* Filters */}
+          <aside className="dc__filters">
+            <div className="nd-between">
+              <div className="nd-h3">Filters</div>
+              <button
+                className="nd-btn nd-btn--ghost nd-btn--sm"
+                onClick={resetAll}
+              >
+                Reset
+              </button>
+            </div>
 
-        {isBrand && (
-          <div className="shortlist-panel">
-            {shortlist ? (
-              <>
-                <strong>Shortlist: {shortlist.name}</strong>
-                <div style={{ marginTop: 8 }}>
-                  {(shortlist.creator_ids || []).length === 0 ? (
-                    <span className="muted">No creators yet.</span>
-                  ) : (
-                    shortlist.creator_ids.map((id) => (
-                      <span className="chip" key={id}>
-                        creator #{id}
-                      </span>
-                    ))
-                  )}
-                </div>
-              </>
-            ) : (
-              <div style={{ display: 'flex', gap: 8 }}>
-                <input
-                  placeholder="New shortlist name"
-                  value={shortlistName}
-                  onChange={(e) => setShortlistName(e.target.value)}
-                  style={{ flex: 1, padding: '9px 11px', border: '1px solid var(--line)', borderRadius: 8 }}
-                />
-                <Button
+            <div className="nd-stack" style={{ gap: 11 }}>
+              <span className="nd-eyebrow">Platform</span>
+              {PLATFORMS.map((p) => (
+                <button
                   type="button"
-                  color={ORANGE}
-                  primary
-                  size="medium"
-                  label="Create"
-                  onClick={onCreateShortlist}
+                  className="dc__check"
+                  key={p}
+                  onClick={() => toggle(platforms, setPlatforms, p)}
+                >
+                  <span
+                    className={
+                      platforms.includes(p) ? 'dc__box is-on' : 'dc__box'
+                    }
+                  >
+                    {platforms.includes(p) ? '✓' : ''}
+                  </span>
+                  <span className="nd-grow" style={{ fontSize: '0.82rem' }}>
+                    {p}
+                  </span>
+                </button>
+              ))}
+            </div>
+
+            <div className="nd-stack" style={{ gap: 11 }}>
+              <span className="nd-eyebrow">Audience size</span>
+              {SIZE_BUCKETS.map((b) => (
+                <button
+                  type="button"
+                  className="dc__check"
+                  key={b.key}
+                  onClick={() => toggle(sizes, setSizes, b.key)}
+                >
+                  <span
+                    className={
+                      sizes.includes(b.key) ? 'dc__box is-on' : 'dc__box'
+                    }
+                  >
+                    {sizes.includes(b.key) ? '✓' : ''}
+                  </span>
+                  <span className="nd-grow" style={{ fontSize: '0.82rem' }}>
+                    {b.label}
+                  </span>
+                </button>
+              ))}
+            </div>
+
+            <div className="nd-stack" style={{ gap: 11 }}>
+              <span className="nd-eyebrow">Verification</span>
+              <button
+                type="button"
+                className="dc__check"
+                onClick={() => setVerifiedOnly((v) => !v)}
+              >
+                <span className={verifiedOnly ? 'dc__box is-on' : 'dc__box'}>
+                  {verifiedOnly ? '✓' : ''}
+                </span>
+                <span className="nd-grow" style={{ fontSize: '0.82rem' }}>
+                  ID verified only
+                </span>
+              </button>
+            </div>
+
+            <div className="nd-stack" style={{ gap: 10 }}>
+              <span className="nd-eyebrow">Rate per post</span>
+              <label className="dc__slider">
+                <span className="dc__slider-lbl">Min {money(minRate)}</span>
+                <input
+                  type="range"
+                  min={RATE_FLOOR}
+                  max={RATE_CEIL}
+                  step={50}
+                  value={minRate}
+                  onChange={(e) =>
+                    setMinRate(Math.min(Number(e.target.value), maxRate))
+                  }
                 />
+              </label>
+              <label className="dc__slider">
+                <span className="dc__slider-lbl">Max {money(maxRate)}</span>
+                <input
+                  type="range"
+                  min={RATE_FLOOR}
+                  max={RATE_CEIL}
+                  step={50}
+                  value={maxRate}
+                  onChange={(e) =>
+                    setMaxRate(Math.max(Number(e.target.value), minRate))
+                  }
+                />
+              </label>
+            </div>
+
+            <button
+              className="nd-btn nd-btn--primary nd-btn--block"
+              onClick={() => setAppliedQ(q)}
+            >
+              Apply filters
+            </button>
+          </aside>
+
+          {/* Results */}
+          <section className="dc__results">
+            <form className="dc__toolbar" onSubmit={onSearch}>
+              <div className="nd-search nd-grow">
+                <span className="nd-search__ring" />
+                <input
+                  placeholder="Search creators, niches, keywords"
+                  value={q}
+                  onChange={(e) => setQ(e.target.value)}
+                />
+                <span
+                  className="nd-mono nd-muted"
+                  style={{ fontSize: '0.7rem' }}
+                >
+                  {cards.length} creators
+                </span>
+              </div>
+              <select
+                className="dc__sort"
+                value={sort}
+                onChange={(e) => setSort(e.target.value)}
+              >
+                <option value="followers">Sort: Followers</option>
+                <option value="engagement">Sort: Engagement</option>
+                <option value="rating">Sort: Rating</option>
+              </select>
+              <button className="nd-btn nd-btn--secondary" type="submit">
+                {isFetching ? 'Searching…' : 'Search'}
+              </button>
+            </form>
+
+            {chips.length > 0 && (
+              <div className="nd-row nd-wrap" style={{ gap: 8 }}>
+                {chips.map((ch) => (
+                  <button
+                    type="button"
+                    className="nd-pill nd-pill--outline"
+                    key={ch.label}
+                    onClick={ch.clear}
+                  >
+                    {ch.label} <span className="nd-muted">✕</span>
+                  </button>
+                ))}
               </div>
             )}
-          </div>
-        )}
 
-        <form className="filters" onSubmit={onSearch}>
-          <input className="full" placeholder="Search by name" value={filters.q} onChange={set('q')} />
-          <input placeholder="Niches (comma-separated)" value={filters.niche} onChange={set('niche')} />
-          <input placeholder="Min followers" type="number" value={filters.min_followers} onChange={set('min_followers')} />
-          <select value={filters.sort} onChange={set('sort')}>
-            <option value="followers">Sort: Followers</option>
-            <option value="engagement">Sort: Engagement</option>
-            <option value="rating">Sort: Rating</option>
-          </select>
-          <div className="full">
-            <Button type="submit" color={ORANGE} primary size="large" label={isFetching ? 'Searching…' : 'Search'} />
-          </div>
-        </form>
+            {error && <p className="nd-error">{apiErrorMessage(error)}</p>}
+            {!isFetching && !error && cards.length === 0 && (
+              <p className="nd-muted" style={{ padding: '8px 2px' }}>
+                No creators match these filters. Try widening your search or
+                resetting the filters.
+              </p>
+            )}
 
-        {error && <p className="form-error">{apiErrorMessage(error)}</p>}
-
-        {results.length === 0 && !isFetching ? (
-          <p className="muted">No results yet — run a search.</p>
-        ) : (
-          results.map((c) => (
-            <div className="creator-card" key={c.user_id}>
-              <div>
-                <div className="name">{c.display_name || `Creator #${c.user_id}`}</div>
-                <div className="meta">
-                  {(c.niches || []).join(', ')}
-                  {c.location ? ` · ${c.location}` : ''}
+            <div className="dc__grid">
+              {cards.map((c) => (
+                <div className="dc__card" key={c.id}>
+                  <div
+                    className="nd-row"
+                    style={{ alignItems: 'flex-start', gap: 12 }}
+                  >
+                    <Avatar label={c.initials} size={48} />
+                    <div className="nd-grow">
+                      <div className="nd-row" style={{ gap: 6 }}>
+                        <span className="nd-h3" style={{ fontSize: '0.95rem' }}>
+                          {c.name}
+                        </span>
+                      </div>
+                      <div className="nd-muted" style={{ fontSize: '0.75rem' }}>
+                        {c.handle} · {c.location}
+                      </div>
+                    </div>
+                  </div>
+                  <div className="nd-row nd-wrap" style={{ gap: 6 }}>
+                    <span className="nd-pill nd-pill--accent">{c.niche}</span>
+                    <span className="nd-pill nd-pill--outline">
+                      {c.platform}
+                    </span>
+                  </div>
+                  <div className="dc__stats">
+                    <div>
+                      <div className="dc__stat-val">{c.followers}</div>
+                      <div className="dc__stat-lbl">Followers</div>
+                    </div>
+                    <div>
+                      <div
+                        className="dc__stat-val"
+                        style={{ color: 'var(--success-ink)' }}
+                      >
+                        {c.engagement}
+                      </div>
+                      <div className="dc__stat-lbl">Engage</div>
+                    </div>
+                    <div>
+                      <div className="dc__stat-val">{c.rating}</div>
+                      <div className="dc__stat-lbl">Rating</div>
+                    </div>
+                  </div>
+                  <div className="nd-row" style={{ gap: 8 }}>
+                    {isBrand && (
+                      <button
+                        className="nd-btn nd-btn--dark nd-btn--sm nd-grow"
+                        style={{ justifyContent: 'center' }}
+                        onClick={() => onInvite(c.id)}
+                        disabled={invited.has(c.id)}
+                      >
+                        {invited.has(c.id) ? 'Shortlisted' : 'Invite'}
+                      </button>
+                    )}
+                    <Link
+                      to={buildPath(PAGE_ROUTES.CREATOR_PROFILE, { id: c.id })}
+                      className="nd-btn nd-btn--secondary nd-btn--sm nd-grow"
+                      style={{ justifyContent: 'center' }}
+                    >
+                      View profile
+                    </Link>
+                  </div>
                 </div>
-                <div className="meta">
-                  {c.follower_count} followers · {c.engagement_rate}% eng · ★ {c.avg_rating}
-                </div>
-              </div>
-              {isBrand && shortlist && (
-                <Button
-                  type="button"
-                  color={ORANGE}
-                  primary={false}
-                  size="medium"
-                  label="Add"
-                  onClick={() => onAdd(c.user_id)}
-                />
-              )}
+              ))}
             </div>
-          ))
-        )}
+          </section>
+        </div>
       </div>
     </>
   )

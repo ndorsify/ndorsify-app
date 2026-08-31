@@ -1,0 +1,78 @@
+/* Campaign performance report (design 3h). */
+
+.rp {
+  max-width: 1180px;
+  margin: 0 auto;
+  padding: 24px 28px 96px;
+}
+
+.rp__head {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+  margin-bottom: 22px;
+}
+
+.rp__grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 320px;
+  gap: 24px;
+  align-items: start;
+}
+
+.rp__row {
+  display: grid;
+  grid-template-columns: 2fr 0.9fr 0.9fr 0.9fr 0.9fr 0.7fr;
+  gap: 10px;
+  align-items: center;
+}
+.rp__row span {
+  font-size: 0.82rem;
+}
+.rp__row .nd-mono {
+  color: var(--ink-2);
+}
+
+.rp__legend {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.74rem;
+  color: var(--ink-2);
+}
+.rp__legend::before {
+  content: '';
+  width: 10px;
+  height: 10px;
+  border-radius: 3px;
+}
+.rp__legend--reach::before {
+  background: var(--accent);
+}
+.rp__legend--orders::before {
+  background: var(--success);
+}
+
+.rp__insights {
+  margin: 0;
+  padding-left: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+}
+.rp__insights li {
+  font-size: 0.82rem;
+  line-height: 1.5;
+  color: var(--ink-2);
+}
+
+@media (max-width: 900px) {
+  .rp__grid {
+    grid-template-columns: 1fr;
+  }
+  .rp__row {
+    grid-template-columns: 1.6fr repeat(5, 0.8fr);
+  }
+}

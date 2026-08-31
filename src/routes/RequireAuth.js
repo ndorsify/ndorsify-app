@@ -10,7 +10,9 @@ export default function RequireAuth() {
   const location = useLocation()
 
   if (!authed) {
-    return <Navigate to={PAGE_ROUTES.LOGIN} replace state={{ from: location }} />
+    return (
+      <Navigate to={PAGE_ROUTES.LOGIN} replace state={{ from: location }} />
+    )
   }
   return <Outlet />
 }

@@ -1,7 +1,6 @@
 import { useDispatch, useSelector } from 'react-redux'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 
-import logo from '../../assets/siteLogo.png'
 import { PAGE_ROUTES } from '../../routes'
 import {
   loggedOut,
@@ -11,13 +10,25 @@ import {
 import { useLogoutMutation } from '../../features/auth/authApi'
 import './appNav.css'
 
-// Top nav for authenticated pages.
+// Brand mark: indigo rounded square + wordmark, matching the design system.
+export function Brandmark({ role }) {
+  return (
+    <Link to={PAGE_ROUTES.DASHBOARD} className="nd-brand">
+      <span className="nd-brand__mark" aria-hidden="true" />
+      <span className="nd-brand__word">Ndorsify</span>
+      {role && <span className="nd-brand__role">{role.toUpperCase()}</span>}
+    </Link>
+  )
+}
+
+// Top nav for authenticated pages — role-aware, indigo theme.
 export default function AppNav() {
   const navigate = useNavigate()
   const dispatch = useDispatch()
   const location = useLocation()
+  const user = useSelector(selectUser)
   const refreshToken = useSelector(selectRefreshToken)
-  const isBrand = useSelector(selectUser)?.role === 'brand'
+  const isBrand = user?.role === 'brand'
   const [logout] = useLogoutMutation()
 
   const onLogout = async () => {
@@ -30,30 +41,67 @@ export default function AppNav() {
     navigate(PAGE_ROUTES.LOGIN, { replace: true })
   }
 
-  const link = (to, label) => (
-    <Link
-      to={to}
-      className={location.pathname === to ? 'appnav-link active' : 'appnav-link'}
-    >
-      {label}
-    </Link>
+  const link = (to, label) => {
+    const active =
+      to === PAGE_ROUTES.DASHBOARD
+        ? location.pathname === to
+        : location.pathname.startsWith(to)
+    return (
+      <Link
+        to={to}
+        className={active ? 'nd-nav__link is-active' : 'nd-nav__link'}
+      >
+        {label}
+      </Link>
+    )
+  }
+
+  const brandLinks = (
+    <>
+      {link(PAGE_ROUTES.DASHBOARD, 'Dashboard')}
+      {link(PAGE_ROUTES.DISCOVER, 'Discover')}
+      {link(PAGE_ROUTES.CAMPAIGNS, 'Campaigns')}
+      {link(PAGE_ROUTES.MESSAGES, 'Messages')}
+      {link(PAGE_ROUTES.COLLABORATIONS, 'Reports')}
+    </>
   )
 
+  const creatorLinks = (
+    <>
+      {link(PAGE_ROUTES.DASHBOARD, 'Opportunities')}
+      {link(PAGE_ROUTES.MARKETPLACE, 'Marketplace')}
+      {link(PAGE_ROUTES.INVITATIONS, 'Invitations')}
+      {link(PAGE_ROUTES.COLLABORATIONS, 'My deals')}
+      {link(PAGE_ROUTES.MESSAGES, 'Messages')}
+      {link(PAGE_ROUTES.EARNINGS, 'Earnings')}
+      {link(PAGE_ROUTES.PROFILE_EDIT, 'Profile')}
+    </>
+  )
+
+  const initials = (user?.email || 'ND').slice(0, 2).toUpperCase()
+
   return (
-    <nav className="appnav">
-      <Link to={PAGE_ROUTES.HOME} className="appnav-brand">
-        <img src={logo} alt="Ndorsify" />
-      </Link>
-      <div className="appnav-links">
-        {link(PAGE_ROUTES.HOME, 'Home')}
-        {isBrand && link(PAGE_ROUTES.CAMPAIGNS, 'Campaigns')}
-        {isBrand && link(PAGE_ROUTES.DISCOVER, 'Discover')}
-        {!isBrand && link(PAGE_ROUTES.MARKETPLACE, 'Marketplace')}
-        {!isBrand && link(PAGE_ROUTES.INVITATIONS, 'Invitations')}
-        {link(PAGE_ROUTES.COLLABORATIONS, 'Work')}
-        {link(PAGE_ROUTES.MESSAGES, 'Messages')}
-        {link(PAGE_ROUTES.PROFILE_EDIT, 'Profile')}
-        <button type="button" className="appnav-logout" onClick={onLogout}>
+    <nav className="nd-topnav">
+      <div className="nd-topnav__left">
+        <Brandmark role={user?.role} />
+        <div className="nd-nav">{isBrand ? brandLinks : creatorLinks}</div>
+      </div>
+      <div className="nd-topnav__right">
+        {isBrand ? (
+          <Link
+            to={PAGE_ROUTES.CAMPAIGN_NEW}
+            className="nd-btn nd-btn--primary nd-btn--sm"
+          >
+            New campaign
+          </Link>
+        ) : (
+          <span className="nd-avail">
+            <span className="nd-dot" />
+            Open to work
+          </span>
+        )}
+        <span className="nd-avatar nd-topnav__avatar">{initials}</span>
+        <button type="button" className="nd-topnav__logout" onClick={onLogout}>
           Log out
         </button>
       </div>

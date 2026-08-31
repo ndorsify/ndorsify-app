@@ -1,0 +1,120 @@
+/* Contract & e-signature (design 3f). */
+
+.ct {
+  max-width: 1160px;
+  margin: 0 auto;
+  padding: 24px 28px 96px;
+}
+
+.ct__head {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+  margin-bottom: 24px;
+}
+
+.ct__grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 320px;
+  gap: 24px;
+  align-items: start;
+}
+
+.ct__doc {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-card);
+  padding: 28px 30px;
+}
+.ct__doc-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  padding-bottom: 20px;
+  margin-bottom: 22px;
+  border-bottom: 1px solid var(--line);
+}
+
+.ct__clauses {
+  margin-bottom: 26px;
+}
+.ct__clause {
+  display: grid;
+  grid-template-columns: 28px 1fr;
+  gap: 14px;
+  align-items: start;
+}
+.ct__clause-num {
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+  display: grid;
+  place-items: center;
+  background: var(--accent-soft);
+  color: var(--accent-press);
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+.ct__sigs {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  padding-top: 22px;
+  border-top: 1px dashed var(--line-2);
+}
+.ct__sig {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 16px;
+  border-radius: 12px;
+  border: 1px solid var(--line-2);
+  background: var(--canvas);
+}
+.ct__sig.is-done {
+  border-color: var(--success);
+  background: var(--success-soft);
+}
+.ct__sig-name {
+  font-family: 'Segoe Script', 'Snell Roundhand', cursive;
+  font-size: 1.35rem;
+  color: var(--accent-press);
+}
+.ct__sig-name--ink {
+  color: var(--ink);
+}
+
+.ct__term {
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--canvas);
+}
+.ct__term:last-child {
+  border-bottom: none;
+  padding-bottom: 0;
+}
+
+.ct__sign-input {
+  font-family: 'Segoe Script', 'Snell Roundhand', cursive;
+  font-size: 1.1rem;
+}
+
+.ct__check {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  cursor: pointer;
+}
+
+@media (max-width: 880px) {
+  .ct__grid {
+    grid-template-columns: 1fr;
+  }
+  .ct__sigs {
+    grid-template-columns: 1fr;
+  }
+}

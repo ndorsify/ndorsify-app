@@ -13,15 +13,15 @@ on:
   workflow_dispatch:
     inputs:
       target:
-        description: "What to regenerate"
+        description: 'What to regenerate'
         type: choice
         default: agents-map
         options: [agents-map, playbooks, all]
   push:
     branches: [main]
     paths:
-      - "src/**"
-      - "docs/adr/**"
+      - 'src/**'
+      - 'docs/adr/**'
 
 permissions:
   contents: write

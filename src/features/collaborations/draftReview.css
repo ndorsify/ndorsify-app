@@ -1,0 +1,120 @@
+/* Draft approval & revision review (design 3g). */
+
+.dr {
+  max-width: 1180px;
+  margin: 0 auto;
+  padding: 24px 28px 96px;
+}
+
+.dr__head {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+  margin-bottom: 20px;
+}
+
+.dr__banner {
+  margin-bottom: 18px;
+  font-size: 0.86rem;
+  color: var(--accent-press);
+}
+
+.dr__grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 360px;
+  gap: 24px;
+  align-items: start;
+}
+
+.dr__video {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-card);
+  padding: 16px;
+}
+.dr__video-frame {
+  position: relative;
+  aspect-ratio: 16 / 9;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #2a2735, #16161d);
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+}
+.dr__play {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.92);
+  color: var(--ink);
+  display: grid;
+  place-items: center;
+  font-size: 1.1rem;
+  padding-left: 4px;
+}
+.dr__video-meta {
+  position: absolute;
+  bottom: 12px;
+  left: 14px;
+  font-size: 0.68rem;
+  color: rgba(255, 255, 255, 0.75);
+}
+.dr__scrub {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding-top: 14px;
+}
+.dr__scrub-track {
+  flex: 1;
+  height: 5px;
+  border-radius: 3px;
+  background: var(--canvas);
+  overflow: hidden;
+}
+.dr__scrub-fill {
+  display: block;
+  width: 38%;
+  height: 100%;
+  background: var(--accent);
+}
+
+.dr__checks {
+  gap: 10px;
+}
+.dr__check {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 8px 12px;
+  border-radius: var(--radius-pill);
+  background: var(--success-soft);
+  color: var(--success-ink);
+  font-size: 0.78rem;
+  font-weight: 600;
+}
+
+.dr__version {
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--canvas);
+}
+.dr__version:last-child {
+  border-bottom: none;
+  padding-bottom: 0;
+}
+
+.dr__msg {
+  display: grid;
+  grid-template-columns: 30px 1fr;
+  gap: 10px;
+  align-items: start;
+}
+
+@media (max-width: 900px) {
+  .dr__grid {
+    grid-template-columns: 1fr;
+  }
+}
