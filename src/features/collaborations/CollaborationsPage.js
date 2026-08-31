@@ -6,11 +6,28 @@ import AppNav from '../../components/common/AppNav'
 import { selectUser } from '../auth/authSlice'
 import { splitList } from '../profile/helpers'
 import {
+  useCollaborationTimelineQuery,
   useMarkLiveMutation,
   useMyCollaborationsQuery,
   useReviewDeliverableMutation,
   useSubmitDeliverableMutation
 } from './collaborationApi'
+
+const shortDateTime = (iso) => {
+  const d = new Date(iso.endsWith('Z') ? iso : `${iso}Z`)
+  if (Number.isNaN(d.getTime())) return iso
+  return d.toLocaleString('en-US', {
+    month: 'short',
+    day: 'numeric',
+    hour: 'numeric',
+    minute: '2-digit'
+  })
+}
+
+const deliverableLabel = (deliverables, id) => {
+  const d = deliverables.find((row) => row.id === id)
+  return d ? `${d.platform || '—'} · ${d.type || '—'}` : `Deliverable #${id}`
+}
 
 function CreatorSubmit({ deliverableId }) {
   const [submit, { isLoading }] = useSubmitDeliverableMutation()
@@ -113,21 +130,88 @@ function DeliverableRow({ deliverable, isBrand, isCreator }) {
   )
 }
 
+function TimelinePanel({ collaborationId, deliverables }) {
+  const { data: events = [], isLoading } =
+    useCollaborationTimelineQuery(collaborationId)
+
+  if (isLoading) {
+    return (
+      <p className="nd-muted" style={{ fontSize: '0.82rem' }}>
+        Loading timeline…
+      </p>
+    )
+  }
+  if (events.length === 0) {
+    return (
+      <p className="nd-muted" style={{ fontSize: '0.82rem' }}>
+        No submissions or reviews yet.
+      </p>
+    )
+  }
+  return (
+    <div className="nd-stack" style={{ gap: 10 }}>
+      {events.map((e, i) => (
+        <div
+          className="nd-between"
+          key={i}
+          style={{ alignItems: 'flex-start', gap: 10 }}
+        >
+          <div className="nd-stack" style={{ gap: 2 }}>
+            <span style={{ fontSize: '0.82rem' }}>
+              {e.kind === 'submission'
+                ? `Submitted v${e.detail.version}`
+                : `Review: ${e.detail.decision.replace('_', ' ')}`}{' '}
+              — {deliverableLabel(deliverables, e.deliverable_id)}
+            </span>
+            {e.kind === 'submission' && e.detail.note && (
+              <span className="nd-muted" style={{ fontSize: '0.76rem' }}>
+                “{e.detail.note}”
+              </span>
+            )}
+            {e.kind === 'review' && e.detail.feedback && (
+              <span className="nd-muted" style={{ fontSize: '0.76rem' }}>
+                “{e.detail.feedback}”
+              </span>
+            )}
+          </div>
+          <span className="nd-muted" style={{ fontSize: '0.72rem' }}>
+            {shortDateTime(e.at)}
+          </span>
+        </div>
+      ))}
+    </div>
+  )
+}
+
 function CollaborationCard({ collaboration, isBrand, isCreator }) {
   const c = collaboration
+  const [showTimeline, setShowTimeline] = useState(false)
   return (
     <div className="nd-card" style={{ marginBottom: 14 }}>
-      <div className="nd-row" style={{ gap: 8 }}>
-        <span className="nd-h2">Campaign #{c.campaign_id}</span>
-        <span className={`badge ${c.status}`}>
-          {c.status.replace('_', ' ')}
-        </span>
+      <div className="nd-between">
+        <div className="nd-row" style={{ gap: 8 }}>
+          <span className="nd-h2">Campaign #{c.campaign_id}</span>
+          <span className={`badge ${c.status}`}>
+            {c.status.replace('_', ' ')}
+          </span>
+        </div>
+        <button
+          className="nd-btn nd-btn--ghost nd-btn--sm"
+          onClick={() => setShowTimeline((v) => !v)}
+        >
+          {showTimeline ? 'Hide timeline' : 'View timeline'}
+        </button>
       </div>
       <div className="nd-muted" style={{ fontSize: '0.8rem', marginTop: 4 }}>
         {isBrand ? `Creator #${c.creator_id}` : `Brand #${c.brand_id}`} ·{' '}
         {c.deliverables.length} deliverable
         {c.deliverables.length === 1 ? '' : 's'}
       </div>
+      {showTimeline && (
+        <div className="sub-panel">
+          <TimelinePanel collaborationId={c.id} deliverables={c.deliverables} />
+        </div>
+      )}
       <div className="sub-panel">
         {c.deliverables.map((d) => (
           <DeliverableRow

@@ -7,7 +7,7 @@ import { SERVICE_URLS } from '../../lib/config'
 export const collaborationApi = createApi({
   reducerPath: 'collaborationApi',
   baseQuery: makeBaseQueryWithReauth(SERVICE_URLS.collaboration),
-  tagTypes: ['Collaborations'],
+  tagTypes: ['Collaborations', 'Timeline'],
   endpoints: (builder) => ({
     myCollaborations: builder.query({
       query: () => '/collaborations/mine',
@@ -17,13 +17,17 @@ export const collaborationApi = createApi({
       // whenever the board is revisited instead of trusting the local cache.
       refetchOnMountOrArgChange: true
     }),
+    collaborationTimeline: builder.query({
+      query: (collaborationId) => `/collaborations/${collaborationId}/timeline`,
+      providesTags: (result, error, id) => [{ type: 'Timeline', id }]
+    }),
     submitDeliverable: builder.mutation({
       query: ({ deliverableId, file_refs, note }) => ({
         url: `/deliverables/${deliverableId}/submit`,
         method: 'POST',
         body: { file_refs, note }
       }),
-      invalidatesTags: ['Collaborations']
+      invalidatesTags: ['Collaborations', 'Timeline']
     }),
     reviewDeliverable: builder.mutation({
       query: ({ deliverableId, decision, feedback }) => ({
@@ -31,20 +35,21 @@ export const collaborationApi = createApi({
         method: 'POST',
         body: { decision, feedback }
       }),
-      invalidatesTags: ['Collaborations']
+      invalidatesTags: ['Collaborations', 'Timeline']
     }),
     markLive: builder.mutation({
       query: (deliverableId) => ({
         url: `/deliverables/${deliverableId}/mark-live`,
         method: 'POST'
       }),
-      invalidatesTags: ['Collaborations']
+      invalidatesTags: ['Collaborations', 'Timeline']
     })
   })
 })
 
 export const {
   useMyCollaborationsQuery,
+  useCollaborationTimelineQuery,
   useSubmitDeliverableMutation,
   useReviewDeliverableMutation,
   useMarkLiveMutation
