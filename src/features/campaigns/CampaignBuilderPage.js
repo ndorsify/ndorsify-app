@@ -403,6 +403,7 @@ export default function CampaignBuilderPage() {
                 approval={approval}
                 setApproval={setApproval}
                 error={error}
+                localError={localError}
               />
             )}
             {step === 4 && (
@@ -456,7 +457,8 @@ function DeliverablesStep({
   setUsage,
   approval,
   setApproval,
-  error
+  error,
+  localError
 }) {
   return (
     <>
@@ -585,7 +587,9 @@ function DeliverablesStep({
           </div>
         </div>
       </div>
-      {error && <p className="nd-error">{apiErrorMessage(error)}</p>}
+      {(localError || error) && (
+        <p className="nd-error">{localError || apiErrorMessage(error)}</p>
+      )}
     </>
   )
 }
