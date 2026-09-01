@@ -13,6 +13,7 @@ const PAGE_ROUTES = {
   VERIFY_EMAIL: '/verify-email',
   ONBOARDING: '/onboarding',
   PROFILE_EDIT: '/profile/edit',
+  SETTINGS: '/settings',
   DISCOVER: '/discover',
   CREATOR_PROFILE: '/creators/:id',
   MESSAGES: '/messages',

@@ -11,6 +11,7 @@ import LandingPage from './features/home/LandingPage'
 import HomePage from './features/home/HomePage'
 import OnboardingPage from './features/onboarding/OnboardingPage'
 import ProfileEditPage from './features/profile/ProfileEditPage'
+import SettingsPage from './features/settings/SettingsPage'
 import DiscoverPage from './features/discovery/DiscoverPage'
 import CreatorProfilePage from './features/discovery/CreatorProfilePage'
 import InboxPage from './features/messaging/InboxPage'
@@ -55,6 +56,7 @@ function App() {
             path={PAGE_ROUTES.PROFILE_EDIT}
             element={<ProfileEditPage />}
           />
+          <Route path={PAGE_ROUTES.SETTINGS} element={<SettingsPage />} />
           <Route path={PAGE_ROUTES.DISCOVER} element={<DiscoverPage />} />
           <Route
             path={PAGE_ROUTES.CREATOR_PROFILE}

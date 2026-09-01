@@ -8,7 +8,25 @@ import {
   selectUser
 } from '../../features/auth/authSlice'
 import { useLogoutMutation } from '../../features/auth/authApi'
+import {
+  useGetBrandProfileQuery,
+  useGetCreatorProfileQuery
+} from '../../features/profile/profileApi'
+import AccountMenu from './AccountMenu'
 import './appNav.css'
+
+// "Rachel Oyelaran" -> "RO"; "Kettle & Fern Co" -> "KF" (symbol-only words like
+// "&" are skipped); single-word names use the first two letters.
+function getInitials(name) {
+  if (!name) return null
+  const parts = name
+    .trim()
+    .split(/\s+/)
+    .filter((p) => /[a-z0-9]/i.test(p))
+  if (parts.length === 0) return null
+  if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase()
+  return (parts[0][0] + parts[1][0]).toUpperCase()
+}
 
 // Brand mark: indigo rounded square + wordmark, matching the design system.
 export function Brandmark({ role }) {
@@ -30,6 +48,19 @@ export default function AppNav() {
   const refreshToken = useSelector(selectRefreshToken)
   const isBrand = user?.role === 'brand'
   const [logout] = useLogoutMutation()
+
+  const { data: creatorProfile } = useGetCreatorProfileQuery(user?.id, {
+    skip: !user?.id || isBrand
+  })
+  const { data: brandProfile } = useGetBrandProfileQuery(user?.id, {
+    skip: !user?.id || !isBrand
+  })
+  const displayName = isBrand
+    ? brandProfile?.company_name || null
+    : creatorProfile?.display_name || null
+  const avatarSrc = isBrand
+    ? brandProfile?.logo_url || undefined
+    : creatorProfile?.avatar_url || undefined
 
   const onLogout = async () => {
     try {
@@ -78,7 +109,8 @@ export default function AppNav() {
     </>
   )
 
-  const initials = (user?.email || 'ND').slice(0, 2).toUpperCase()
+  const initials =
+    getInitials(displayName) || (user?.email || 'ND').slice(0, 2).toUpperCase()
 
   return (
     <nav className="nd-topnav">
@@ -100,10 +132,15 @@ export default function AppNav() {
             Open to work
           </span>
         )}
-        <span className="nd-avatar nd-topnav__avatar">{initials}</span>
-        <button type="button" className="nd-topnav__logout" onClick={onLogout}>
-          Log out
-        </button>
+        <AccountMenu
+          name={displayName}
+          email={user?.email}
+          initials={initials}
+          avatarSrc={avatarSrc}
+          profileHref={PAGE_ROUTES.PROFILE_EDIT}
+          settingsHref={PAGE_ROUTES.SETTINGS}
+          onLogout={onLogout}
+        />
       </div>
     </nav>
   )
