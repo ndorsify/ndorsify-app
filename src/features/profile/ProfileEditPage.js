@@ -33,7 +33,9 @@ function CreatorEditor({ userId }) {
     languages: '',
     avatar_url: ''
   })
-  const [packages, setPackages] = useState(ratePackages)
+  const [packages, setPackages] = useState(() =>
+    ratePackages.map((p) => ({ ...p, visible: true }))
+  )
   const [availability, setAvailability] = useState({
     open: true,
     autodecline: true,
@@ -114,9 +116,6 @@ function CreatorEditor({ userId }) {
           </p>
         )}
         <div className="nd-row" style={{ gap: 10 }}>
-          <button className="nd-btn nd-btn--secondary nd-btn--sm">
-            Preview as brand
-          </button>
           <button
             className="nd-btn nd-btn--primary nd-btn--sm"
             onClick={onPublish}
@@ -197,6 +196,15 @@ function CreatorEditor({ userId }) {
                 placeholder="English, Yoruba"
               />
             </label>
+            <label className="nd-field">
+              <span>Avatar URL</span>
+              <input
+                className="nd-input"
+                value={form.avatar_url}
+                onChange={set('avatar_url')}
+                placeholder="https://…"
+              />
+            </label>
           </div>
 
           <div className="nd-h1" style={{ fontSize: '1.25rem' }}>
@@ -226,7 +234,10 @@ function CreatorEditor({ userId }) {
                   {pk.turnaround}
                 </span>
                 <div className="nd-row" style={{ gap: 9 }}>
-                  <Toggle on onClick={() => {}} />
+                  <Toggle
+                    on={pk.visible}
+                    onClick={() => setPkg(i, 'visible', !pk.visible)}
+                  />
                   <span className="nd-ink2" style={{ fontSize: '0.75rem' }}>
                     Visible to brands
                   </span>
@@ -243,7 +254,8 @@ function CreatorEditor({ userId }) {
                   name: 'New package',
                   price: '$0',
                   includes: "Describe what's included",
-                  turnaround: 'Turnaround'
+                  turnaround: 'Turnaround',
+                  visible: true
                 }
               ])
               setDirty((d) => d + 1)
@@ -331,6 +343,7 @@ function BrandEditor({ userId }) {
     website: '',
     about: ''
   })
+  const [dirty, setDirty] = useState(0)
 
   useEffect(() => {
     if (data) {
@@ -344,11 +357,15 @@ function BrandEditor({ userId }) {
     }
   }, [data])
 
-  const set = (k) => (e) => setForm({ ...form, [k]: e.target.value })
+  const set = (k) => (e) => {
+    setForm({ ...form, [k]: e.target.value })
+    setDirty((d) => d + 1)
+  }
   const onSubmit = async (e) => {
     e.preventDefault()
     try {
       await upsert(form).unwrap()
+      setDirty(0)
     } catch {
       /* rendered inline */
     }
@@ -358,7 +375,15 @@ function BrandEditor({ userId }) {
     <div className="nd-page nd-page--narrow">
       <div className="nd-page-head">
         <div className="nd-page-head__titles">
-          <h1 className="nd-h1">Brand profile</h1>
+          <div className="nd-row" style={{ gap: 14 }}>
+            <h1 className="nd-h1">Brand profile</h1>
+            {dirty > 0 && (
+              <span className="nd-pill nd-pill--warn">
+                {dirty} unsaved change{dirty === 1 ? '' : 's'}
+              </span>
+            )}
+            {isSuccess && dirty === 0 && <span className="nd-ok">Saved.</span>}
+          </div>
           <p className="nd-sub">Tell creators who you are.</p>
         </div>
       </div>
@@ -406,7 +431,6 @@ function BrandEditor({ userId }) {
           </label>
         </div>
         {error && <p className="nd-error">{apiErrorMessage(error)}</p>}
-        {isSuccess && !error && <p className="nd-ok">Profile saved.</p>}
         <button
           type="submit"
           className="nd-btn nd-btn--primary nd-btn--lg"
