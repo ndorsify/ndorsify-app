@@ -124,6 +124,11 @@
   background: var(--surface);
   border: 1px solid var(--line);
 }
+/* Let a long handle wrap inside the row instead of shoving the buttons out. */
+.pe__platform > .nd-grow {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
 .pe__ptag {
   width: 34px;
   height: 34px;

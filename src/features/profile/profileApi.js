@@ -7,7 +7,7 @@ import { SERVICE_URLS } from '../../lib/config'
 export const profileApi = createApi({
   reducerPath: 'profileApi',
   baseQuery: makeBaseQueryWithReauth(SERVICE_URLS.profile),
-  tagTypes: ['CreatorProfile', 'BrandProfile'],
+  tagTypes: ['CreatorProfile', 'BrandProfile', 'SocialAccounts'],
   endpoints: (builder) => ({
     getCreatorProfile: builder.query({
       query: (userId) => `/profiles/creators/${userId}`,
@@ -24,6 +24,37 @@ export const profileApi = createApi({
     upsertBrandProfile: builder.mutation({
       query: (body) => ({ url: '/profiles/brands/me', method: 'PUT', body }),
       invalidatesTags: ['BrandProfile']
+    }),
+
+    // --- Connected social accounts (E6 §1) ---------------------------------
+    // Every mutation here re-aggregates the creator's stats into
+    // discovery-service's index server-side, so connecting or dropping a
+    // platform changes what Discover shows.
+    listMySocialAccounts: builder.query({
+      query: () => '/social/mine',
+      providesTags: ['SocialAccounts']
+    }),
+    // Starts the flow; the caller sends the browser to `connect_url`.
+    // A mutation rather than a query because it mints one-shot state.
+    startSocialConnect: builder.mutation({
+      query: (platform) => `/social/${platform}/connect`
+    }),
+    // The provider's return leg. Unauthenticated by design — the signed
+    // `state` is what identifies the creator after a full page redirect.
+    completeSocialConnect: builder.mutation({
+      query: ({ platform, state, externalAccountId }) => ({
+        url: `/social/${platform}/callback`,
+        params: { state, external_account_id: externalAccountId }
+      }),
+      invalidatesTags: ['SocialAccounts', 'CreatorProfile']
+    }),
+    syncSocialAccount: builder.mutation({
+      query: (platform) => ({ url: `/social/${platform}/sync`, method: 'POST' }),
+      invalidatesTags: ['SocialAccounts', 'CreatorProfile']
+    }),
+    disconnectSocialAccount: builder.mutation({
+      query: (platform) => ({ url: `/social/${platform}`, method: 'DELETE' }),
+      invalidatesTags: ['SocialAccounts', 'CreatorProfile']
     })
   })
 })
@@ -32,5 +63,10 @@ export const {
   useGetCreatorProfileQuery,
   useUpsertCreatorProfileMutation,
   useGetBrandProfileQuery,
-  useUpsertBrandProfileMutation
+  useUpsertBrandProfileMutation,
+  useListMySocialAccountsQuery,
+  useStartSocialConnectMutation,
+  useCompleteSocialConnectMutation,
+  useSyncSocialAccountMutation,
+  useDisconnectSocialAccountMutation
 } = profileApi

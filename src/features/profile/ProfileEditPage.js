@@ -7,11 +7,8 @@ import { Toggle } from '../../components/common/ds'
 import { apiErrorMessage } from '../../lib/errors'
 import { selectUser } from '../auth/authSlice'
 import { joinList, splitList } from './helpers'
-import {
-  connectedPlatforms,
-  editorNav,
-  ratePackages
-} from '../../lib/sampleData'
+import { editorNav, ratePackages } from '../../lib/sampleData'
+import ConnectedPlatforms from './ConnectedPlatforms'
 import {
   useGetBrandProfileQuery,
   useGetCreatorProfileQuery,
@@ -266,29 +263,7 @@ function CreatorEditor({ userId }) {
         </main>
 
         <aside className="pe__col pe__col--right">
-          <div className="nd-h1" style={{ fontSize: '1.25rem' }}>
-            Connected platforms
-          </div>
-          {connectedPlatforms.map((p) => (
-            <div className="pe__platform" key={p.name}>
-              <span className="pe__ptag">{p.tag}</span>
-              <div className="nd-grow">
-                <div className="nd-h3" style={{ fontSize: '0.82rem' }}>
-                  {p.name}
-                </div>
-                <div className="nd-muted" style={{ fontSize: '0.7rem' }}>
-                  {p.detail}
-                </div>
-              </div>
-              <span
-                className={
-                  p.ok ? 'nd-pill nd-pill--success' : 'nd-pill nd-pill--outline'
-                }
-              >
-                {p.state}
-              </span>
-            </div>
-          ))}
+          <ConnectedPlatforms />
 
           <div className="nd-card nd-stack" style={{ gap: 12 }}>
             <div className="nd-h3" style={{ fontSize: '0.85rem' }}>

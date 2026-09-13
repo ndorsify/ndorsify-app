@@ -479,36 +479,6 @@ export const editorNav = [
   { label: 'Audience', badge: '', active: false },
   { label: 'Availability', badge: '', active: false }
 ]
-export const connectedPlatforms = [
-  {
-    tag: 'IG',
-    name: 'Instagram',
-    detail: '@mayaokonkwo · 184K · API linked',
-    state: 'Live',
-    ok: true
-  },
-  {
-    tag: 'TT',
-    name: 'TikTok',
-    detail: '@mayaokonkwo · 96K · API linked',
-    state: 'Live',
-    ok: true
-  },
-  {
-    tag: 'YT',
-    name: 'YouTube',
-    detail: 'Not connected',
-    state: 'Connect',
-    ok: false
-  },
-  {
-    tag: 'X',
-    name: 'X / Twitter',
-    detail: '@maya_o · manual metrics',
-    state: 'Review',
-    ok: false
-  }
-]
 
 /* ---- 2d earnings --------------------------------------------------------- */
 export const earningTiles = [

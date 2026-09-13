@@ -11,6 +11,7 @@ import LandingPage from './features/home/LandingPage'
 import HomePage from './features/home/HomePage'
 import OnboardingPage from './features/onboarding/OnboardingPage'
 import ProfileEditPage from './features/profile/ProfileEditPage'
+import SocialCallbackPage from './features/profile/SocialCallbackPage'
 import SettingsPage from './features/settings/SettingsPage'
 import DiscoverPage from './features/discovery/DiscoverPage'
 import CreatorProfilePage from './features/discovery/CreatorProfilePage'
@@ -47,6 +48,12 @@ function App() {
         <Route path={PAGE_ROUTES.HOME} element={<RootRoute />} />
         <Route path={PAGE_ROUTES.LOGIN} element={<LoginPage />} />
         <Route path={PAGE_ROUTES.REGISTER} element={<RegisterPage />} />
+        {/* A provider redirect lands here after a full page load, so it can't
+            sit behind RequireAuth — see SocialCallbackPage. */}
+        <Route
+          path={PAGE_ROUTES.SOCIAL_CALLBACK}
+          element={<SocialCallbackPage />}
+        />
 
         {/* Protected */}
         <Route element={<RequireAuth />}>
