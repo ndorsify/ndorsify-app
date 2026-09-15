@@ -85,10 +85,23 @@ export const validateRateCard = (packages) =>
       message = 'Name is required'
     } else if (!Number.isInteger(price) || price < 1) {
       message = 'Price must be a whole dollar amount of at least $1'
-    } else if (!Number.isInteger(turnaround) || turnaround < 1 || turnaround > 90) {
+    } else if (
+      !Number.isInteger(turnaround) ||
+      turnaround < 1 ||
+      turnaround > 90
+    ) {
       message = 'Turnaround must be between 1 and 90 days'
     } else if (!(p.items || []).length) {
       message = 'Add at least one item'
+    } else if (
+      (p.items || []).some(
+        (i) =>
+          !Number.isInteger(Number(i.quantity)) ||
+          Number(i.quantity) < 1 ||
+          Number(i.quantity) > 50
+      )
+    ) {
+      message = 'Every item needs a whole quantity between 1 and 50'
     }
     return message ? [...errors, { index, message }] : errors
   }, [])
@@ -97,7 +110,7 @@ export const validateRateCard = (packages) =>
 export const toRateCardPayload = (hidden, packages) => ({
   hidden,
   packages: (packages || []).map((p) => ({
-    name: String(p.name).trim(),
+    name: String(p.name || '').trim(),
     price: Number(p.price),
     description: p.description || '',
     turnaround_days: Number(p.turnaround_days),

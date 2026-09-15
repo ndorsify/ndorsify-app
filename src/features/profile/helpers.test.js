@@ -63,9 +63,9 @@ test('summarizeItems reads as a sentence fragment', () => {
   expect(summarizeItems([reel, stories])).toBe(
     '1 Instagram Reel · 3 Instagram Stories'
   )
-  expect(summarizeItems([{ platform: 'twitter', type: 'post', quantity: 2 }])).toBe(
-    '2 X Posts'
-  )
+  expect(
+    summarizeItems([{ platform: 'twitter', type: 'post', quantity: 2 }])
+  ).toBe('2 X Posts')
   expect(summarizeItems([])).toBe('')
   expect(summarizeItems(undefined)).toBe('')
 })
@@ -92,13 +92,27 @@ test('validateRateCard reports one message per bad package', () => {
   expect(validateRateCard([pkg({ price: '' })])).toEqual([
     { index: 0, message: 'Price must be a whole dollar amount of at least $1' }
   ])
-  expect(validateRateCard([pkg({ price: 12.5 })])[0].message).toMatch(/whole dollar/)
+  expect(validateRateCard([pkg({ price: 12.5 })])[0].message).toMatch(
+    /whole dollar/
+  )
   expect(validateRateCard([pkg({ turnaround_days: 0 })])).toEqual([
     { index: 0, message: 'Turnaround must be between 1 and 90 days' }
   ])
   expect(validateRateCard([pkg({ items: [] })])).toEqual([
     { index: 0, message: 'Add at least one item' }
   ])
+})
+
+test('validateRateCard rejects a bad item quantity', () => {
+  const badQty = (quantity) =>
+    validateRateCard([pkg({ items: [{ ...reel, quantity }] })])
+  const expected = [
+    { index: 0, message: 'Every item needs a whole quantity between 1 and 50' }
+  ]
+  expect(badQty('')).toEqual(expected)
+  expect(badQty(0)).toEqual(expected)
+  expect(badQty(51)).toEqual(expected)
+  expect(badQty(1.5)).toEqual(expected)
 })
 
 test('validateRateCard reports the index of each bad package', () => {
@@ -108,9 +122,20 @@ test('validateRateCard reports the index of each bad package', () => {
 })
 
 test('toRateCardPayload drops local-only keys and coerces numbers', () => {
+  // Mirrors real editor state: items carry a `key` too (RateCardEditor's
+  // newItem() mints one, as does ProfileEditPage's seeding effect), so the
+  // item-level key stripping needs its own coverage, not just the package's.
   expect(
     toRateCardPayload(true, [
-      { ...pkg({ price: '1600', turnaround_days: '5' }), key: 'local-1' }
+      {
+        ...pkg({
+          price: '1600',
+          turnaround_days: '5',
+          visible: false,
+          items: [{ ...reel, key: 'item-local-1' }]
+        }),
+        key: 'local-1'
+      }
     ])
   ).toEqual({
     hidden: true,
@@ -120,7 +145,7 @@ test('toRateCardPayload drops local-only keys and coerces numbers', () => {
         price: 1600,
         description: '',
         turnaround_days: 5,
-        visible: true,
+        visible: false,
         items: [{ platform: 'instagram', type: 'reel', quantity: 1 }]
       }
     ]

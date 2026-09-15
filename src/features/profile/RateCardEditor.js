@@ -1,6 +1,12 @@
 import { Toggle } from '../../components/common/ds'
 import { PLATFORM_OPTIONS, TYPE_OPTIONS, summarizeItems } from './helpers'
 
+// The server rejects more than 10 packages, or more than 10 items in a
+// package, with an opaque 422. Cap client-side so the limit shows as a
+// disabled control instead of a bare error after the round trip.
+const MAX_PACKAGES = 10
+const MAX_ITEMS_PER_PACKAGE = 10
+
 let nextKey = 0
 const localKey = () => `pkg-${(nextKey += 1)}`
 
@@ -101,7 +107,9 @@ export default function RateCardEditor({ packages, onChange, errors = [] }) {
                 <select
                   aria-label="Item platform"
                   className="nd-input"
-                  onChange={(e) => updateItem(i, j, { platform: e.target.value })}
+                  onChange={(e) =>
+                    updateItem(i, j, { platform: e.target.value })
+                  }
                   value={item.platform}
                 >
                   {PLATFORM_OPTIONS.map((o) => (
@@ -126,7 +134,9 @@ export default function RateCardEditor({ packages, onChange, errors = [] }) {
                   aria-label="Item quantity"
                   className="nd-input"
                   inputMode="numeric"
-                  onChange={(e) => updateItem(i, j, { quantity: e.target.value })}
+                  onChange={(e) =>
+                    updateItem(i, j, { quantity: e.target.value })
+                  }
                   style={{ maxWidth: 72 }}
                   value={item.quantity}
                 />
@@ -143,13 +153,15 @@ export default function RateCardEditor({ packages, onChange, errors = [] }) {
                 </button>
               </div>
             ))}
-            <button
-              className="nd-add"
-              onClick={() => update(i, { items: [...pk.items, newItem()] })}
-              type="button"
-            >
-              + Add item
-            </button>
+            {pk.items.length < MAX_ITEMS_PER_PACKAGE && (
+              <button
+                className="nd-add"
+                onClick={() => update(i, { items: [...pk.items, newItem()] })}
+                type="button"
+              >
+                + Add item
+              </button>
+            )}
           </div>
 
           <div className="pe__pkg-inc">{summarizeItems(pk.items) || '—'}</div>
@@ -186,13 +198,15 @@ export default function RateCardEditor({ packages, onChange, errors = [] }) {
         </div>
       ))}
 
-      <button
-        className="nd-add"
-        onClick={() => onChange([...packages, newPackage()])}
-        type="button"
-      >
-        + Add package
-      </button>
+      {packages.length < MAX_PACKAGES && (
+        <button
+          className="nd-add"
+          onClick={() => onChange([...packages, newPackage()])}
+          type="button"
+        >
+          + Add package
+        </button>
+      )}
     </>
   )
 }

@@ -121,6 +121,33 @@ test('editing one item in a loaded package leaves the other item untouched', () 
   )
 })
 
+test('hides "+ Add package" once the package cap is reached', () => {
+  const packages = Array.from({ length: 10 }, () => newPackage())
+  render(<Harness initial={packages} />)
+  expect(packageCards()).toHaveLength(10)
+  expect(
+    screen.queryByRole('button', { name: /add package/i })
+  ).not.toBeInTheDocument()
+})
+
+test('hides "+ Add item" once a package reaches its item cap', () => {
+  const pkg = {
+    ...newPackage(),
+    items: Array.from({ length: 10 }, (_, j) => ({
+      key: `cap-item-${j}`,
+      platform: 'instagram',
+      type: 'post',
+      quantity: 1
+    }))
+  }
+  render(<Harness initial={[pkg]} />)
+  const card = packageCards()[0]
+  expect(within(card).getAllByTestId('rate-item')).toHaveLength(10)
+  expect(
+    within(card).queryByRole('button', { name: /add item/i })
+  ).not.toBeInTheDocument()
+})
+
 test('shows an error against the package it belongs to', () => {
   render(
     <Harness

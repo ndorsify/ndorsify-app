@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useSelector } from 'react-redux'
 
 import './profile.css'
@@ -39,11 +39,13 @@ function CreatorEditor({ userId }) {
     avatar_url: ''
   })
   const { data: rateCard } = useGetMyRateCardQuery()
-  const [saveRateCard, { error: rateSaveError }] = useSaveRateCardMutation()
+  const [saveRateCard, { isLoading: rateSaving, error: rateSaveError }] =
+    useSaveRateCardMutation()
 
   const [packages, setPackages] = useState([])
   const [hidden, setHidden] = useState(false)
   const [rateErrors, setRateErrors] = useState([])
+  const seededRef = useRef(false)
   // Still local-only: these belong to the offers flow, not the rate card.
   const [availability, setAvailability] = useState({
     open: true,
@@ -65,7 +67,12 @@ function CreatorEditor({ userId }) {
   }, [data])
 
   useEffect(() => {
-    if (rateCard) {
+    // Seed once from the first resolved response only. saveRateCard
+    // invalidates the RateCard tag and getMyRateCard refetches, which would
+    // otherwise re-run this on every save and clobber edits typed during
+    // that window.
+    if (rateCard && !seededRef.current) {
+      seededRef.current = true
       setPackages(
         (rateCard.packages || []).map((p, i) => ({
           ...p,
@@ -93,23 +100,39 @@ function CreatorEditor({ userId }) {
     setRateErrors(errors)
     if (errors.length) return
 
-    const [profileResult, rateResult] = await Promise.allSettled([
-      upsert({
+    // Serialised, not parallel: both endpoints trigger a full-replace push
+    // to discovery-service's index. The rate card must land first so the
+    // profile's push (which reads the committed rate) doesn't race it and
+    // leave Discover with a stale or zeroed price. Two independent
+    // try/catch blocks keep the error surfaces separate — a failure of one
+    // save must not skip the other, and each still reports inline via its
+    // own mutation's error state.
+    let rateOk = false
+    let profileOk = false
+
+    try {
+      await saveRateCard(toRateCardPayload(hidden, packages)).unwrap()
+      rateOk = true
+    } catch {
+      /* rendered inline via rateSaveError */
+    }
+
+    try {
+      await upsert({
         display_name: form.display_name,
         bio: form.bio,
         niches: splitList(form.niches),
         location: form.location,
         languages: splitList(form.languages),
         avatar_url: form.avatar_url
-      }).unwrap(),
-      saveRateCard(toRateCardPayload(hidden, packages)).unwrap()
-    ])
-    // Each request reports its own failure inline; the dirty marker only
-    // clears when both actually landed.
-    if (
-      profileResult.status === 'fulfilled' &&
-      rateResult.status === 'fulfilled'
-    ) {
+      }).unwrap()
+      profileOk = true
+    } catch {
+      /* rendered inline via error */
+    }
+
+    // The dirty marker only clears when both actually landed.
+    if (rateOk && profileOk) {
       setDirty(0)
     }
   }
@@ -132,9 +155,9 @@ function CreatorEditor({ userId }) {
           <button
             className="nd-btn nd-btn--primary nd-btn--sm"
             onClick={onPublish}
-            disabled={isLoading}
+            disabled={isLoading || rateSaving}
           >
-            {isLoading ? 'Publishing…' : 'Publish changes'}
+            {isLoading || rateSaving ? 'Publishing…' : 'Publish changes'}
           </button>
         </div>
       </div>
