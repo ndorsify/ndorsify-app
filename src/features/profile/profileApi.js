@@ -7,7 +7,7 @@ import { SERVICE_URLS } from '../../lib/config'
 export const profileApi = createApi({
   reducerPath: 'profileApi',
   baseQuery: makeBaseQueryWithReauth(SERVICE_URLS.profile),
-  tagTypes: ['CreatorProfile', 'BrandProfile', 'SocialAccounts'],
+  tagTypes: ['CreatorProfile', 'BrandProfile', 'SocialAccounts', 'RateCard'],
   endpoints: (builder) => ({
     getCreatorProfile: builder.query({
       query: (userId) => `/profiles/creators/${userId}`,
@@ -49,12 +49,33 @@ export const profileApi = createApi({
       invalidatesTags: ['SocialAccounts', 'CreatorProfile']
     }),
     syncSocialAccount: builder.mutation({
-      query: (platform) => ({ url: `/social/${platform}/sync`, method: 'POST' }),
+      query: (platform) => ({
+        url: `/social/${platform}/sync`,
+        method: 'POST'
+      }),
       invalidatesTags: ['SocialAccounts', 'CreatorProfile']
     }),
     disconnectSocialAccount: builder.mutation({
       query: (platform) => ({ url: `/social/${platform}`, method: 'DELETE' }),
       invalidatesTags: ['SocialAccounts', 'CreatorProfile']
+    }),
+
+    // --- Rate cards (Phase 3) ---------------------------------------------
+    getMyRateCard: builder.query({
+      query: () => '/profiles/creators/me/rate-card',
+      providesTags: ['RateCard']
+    }),
+    saveRateCard: builder.mutation({
+      query: (body) => ({
+        url: '/profiles/creators/me/rate-card',
+        method: 'PUT',
+        body
+      }),
+      invalidatesTags: ['RateCard']
+    }),
+    getCreatorRateCard: builder.query({
+      query: (userId) => `/profiles/creators/${userId}/rate-card`,
+      providesTags: ['RateCard']
     })
   })
 })
@@ -68,5 +89,8 @@ export const {
   useStartSocialConnectMutation,
   useCompleteSocialConnectMutation,
   useSyncSocialAccountMutation,
-  useDisconnectSocialAccountMutation
+  useDisconnectSocialAccountMutation,
+  useGetMyRateCardQuery,
+  useSaveRateCardMutation,
+  useGetCreatorRateCardQuery
 } = profileApi

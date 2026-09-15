@@ -6,12 +6,20 @@ import AppNav from '../../components/common/AppNav'
 import { Toggle } from '../../components/common/ds'
 import { apiErrorMessage } from '../../lib/errors'
 import { selectUser } from '../auth/authSlice'
-import { joinList, splitList } from './helpers'
-import { editorNav, ratePackages } from '../../lib/sampleData'
+import {
+  joinList,
+  splitList,
+  toRateCardPayload,
+  validateRateCard
+} from './helpers'
+import { editorNav } from '../../lib/sampleData'
 import ConnectedPlatforms from './ConnectedPlatforms'
+import RateCardEditor from './RateCardEditor'
 import {
   useGetBrandProfileQuery,
   useGetCreatorProfileQuery,
+  useGetMyRateCardQuery,
+  useSaveRateCardMutation,
   useUpsertBrandProfileMutation,
   useUpsertCreatorProfileMutation
 } from './profileApi'
@@ -30,19 +38,18 @@ function CreatorEditor({ userId }) {
     languages: '',
     avatar_url: ''
   })
-  const [packages, setPackages] = useState(() =>
-    ratePackages.map((p) => ({ ...p, visible: true }))
-  )
+  const { data: rateCard } = useGetMyRateCardQuery()
+  const [saveRateCard] = useSaveRateCardMutation()
+
+  const [packages, setPackages] = useState([])
+  const [hidden, setHidden] = useState(false)
+  const [rateErrors, setRateErrors] = useState([])
+  // Still local-only: these belong to the offers flow, not the rate card.
   const [availability, setAvailability] = useState({
     open: true,
-    autodecline: true,
-    hide: false
+    autodecline: true
   })
   const [dirty, setDirty] = useState(0)
-  // Rate card / availability have no backend field yet (Phase 3) — tracked
-  // separately so "Publish changes" never claims to have saved edits it
-  // silently can't send.
-  const [localOnlyDirty, setLocalOnlyDirty] = useState(0)
 
   useEffect(() => {
     if (data) {
@@ -57,34 +64,46 @@ function CreatorEditor({ userId }) {
     }
   }, [data])
 
+  useEffect(() => {
+    if (rateCard) {
+      setPackages(
+        (rateCard.packages || []).map((p, i) => ({ ...p, key: `saved-${i}` }))
+      )
+      setHidden(Boolean(rateCard.hidden))
+    }
+  }, [rateCard])
+
   const set = (k) => (e) => {
     setForm({ ...form, [k]: e.target.value })
     setDirty((d) => d + 1)
   }
-  const setPkg = (i, k, v) => {
-    setPackages((rows) =>
-      rows.map((r, idx) => (idx === i ? { ...r, [k]: v } : r))
-    )
-    setLocalOnlyDirty((d) => d + 1)
-  }
   const toggle = (k) => () => {
     setAvailability((a) => ({ ...a, [k]: !a[k] }))
-    setLocalOnlyDirty((d) => d + 1)
   }
 
   const onPublish = async () => {
-    try {
-      await upsert({
+    const errors = validateRateCard(packages)
+    setRateErrors(errors)
+    if (errors.length) return
+
+    const [profileResult, rateResult] = await Promise.allSettled([
+      upsert({
         display_name: form.display_name,
         bio: form.bio,
         niches: splitList(form.niches),
         location: form.location,
         languages: splitList(form.languages),
         avatar_url: form.avatar_url
-      }).unwrap()
+      }).unwrap(),
+      saveRateCard(toRateCardPayload(hidden, packages)).unwrap()
+    ])
+    // Each request reports its own failure inline; the dirty marker only
+    // clears when both actually landed.
+    if (
+      profileResult.status === 'fulfilled' &&
+      rateResult.status === 'fulfilled'
+    ) {
       setDirty(0)
-    } catch {
-      /* rendered inline */
     }
   }
 
@@ -102,16 +121,6 @@ function CreatorEditor({ userId }) {
             <span className="nd-ok">Published.</span>
           )}
         </div>
-        {localOnlyDirty > 0 && (
-          <p
-            className="nd-muted"
-            style={{ fontSize: '0.75rem', maxWidth: 420 }}
-          >
-            Rate card and availability changes aren't saved to your live profile
-            yet — support for that is coming soon. Basics above still publish
-            normally.
-          </p>
-        )}
         <div className="nd-row" style={{ gap: 10 }}>
           <button
             className="nd-btn nd-btn--primary nd-btn--sm"
@@ -204,62 +213,14 @@ function CreatorEditor({ userId }) {
             </label>
           </div>
 
-          <div className="nd-h1" style={{ fontSize: '1.25rem' }}>
-            Rate card
-          </div>
-          {packages.map((pk, i) => (
-            <div className="pe__pkg" key={i}>
-              <div className="nd-row" style={{ gap: 12 }}>
-                <input
-                  className="pe__pkg-name"
-                  value={pk.name}
-                  onChange={(e) => setPkg(i, 'name', e.target.value)}
-                />
-                <input
-                  className="pe__pkg-price"
-                  value={pk.price}
-                  onChange={(e) => setPkg(i, 'price', e.target.value)}
-                />
-                <span style={{ color: 'var(--ink-faint)' }}>⋮</span>
-              </div>
-              <div className="pe__pkg-inc">{pk.includes}</div>
-              <div className="nd-between">
-                <span
-                  className="nd-mono nd-muted"
-                  style={{ fontSize: '0.7rem' }}
-                >
-                  {pk.turnaround}
-                </span>
-                <div className="nd-row" style={{ gap: 9 }}>
-                  <Toggle
-                    on={pk.visible}
-                    onClick={() => setPkg(i, 'visible', !pk.visible)}
-                  />
-                  <span className="nd-ink2" style={{ fontSize: '0.75rem' }}>
-                    Visible to brands
-                  </span>
-                </div>
-              </div>
-            </div>
-          ))}
-          <button
-            className="nd-add"
-            onClick={() => {
-              setPackages((p) => [
-                ...p,
-                {
-                  name: 'New package',
-                  price: '$0',
-                  includes: "Describe what's included",
-                  turnaround: 'Turnaround',
-                  visible: true
-                }
-              ])
+          <RateCardEditor
+            errors={rateErrors}
+            onChange={(next) => {
+              setPackages(next)
               setDirty((d) => d + 1)
             }}
-          >
-            + Add package
-          </button>
+            packages={packages}
+          />
         </main>
 
         <aside className="pe__col pe__col--right">
@@ -286,7 +247,13 @@ function CreatorEditor({ userId }) {
               <span style={{ fontSize: '0.8rem' }}>
                 Hide rate card from public search
               </span>
-              <Toggle on={availability.hide} onClick={toggle('hide')} />
+              <Toggle
+                on={hidden}
+                onClick={() => {
+                  setHidden((h) => !h)
+                  setDirty((d) => d + 1)
+                }}
+              />
             </div>
             <span className="nd-eyebrow" style={{ paddingTop: 4 }}>
               Categories I won't promote
@@ -300,6 +267,11 @@ function CreatorEditor({ userId }) {
             </div>
           </div>
           {error && <p className="nd-error">{apiErrorMessage(error)}</p>}
+          {rateErrors.length > 0 && (
+            <p className="nd-error">
+              Fix the highlighted packages, then publish.
+            </p>
+          )}
         </aside>
       </div>
     </div>
