@@ -7,7 +7,11 @@ import { PAGE_ROUTES, buildPath } from '../../routes'
 import { money } from '../../lib/format'
 import { useGetCreatorQuery } from './discoveryApi'
 import { useCreateConversationMutation } from '../messaging/messagingApi'
-import { useGetCreatorProfileQuery } from '../profile/profileApi'
+import {
+  useGetCreatorProfileQuery,
+  useGetCreatorRateCardQuery
+} from '../profile/profileApi'
+import { summarizeItems } from '../profile/helpers'
 
 const compact = (n) => {
   const v = Number(n)
@@ -15,32 +19,6 @@ const compact = (n) => {
   if (v >= 1000000) return `${(v / 1000000).toFixed(1)}M`
   if (v >= 1000) return `${Math.round(v / 1000)}K`
   return `${v}`
-}
-
-// A simple indicative rate card derived from the creator's listed base rate.
-const ratePackages = (base) => {
-  if (!base) return []
-  return [
-    {
-      name: 'Single Story',
-      price: money(Math.round(base * 0.4)),
-      includes: '1 Story frame with swipe-up',
-      turnaround: '3-day turnaround'
-    },
-    {
-      name: 'Feed Reel',
-      price: money(base),
-      includes: '1 Reel, 30–45s, 1 revision',
-      turnaround: '5-day turnaround',
-      featured: true
-    },
-    {
-      name: 'Reel + 3 Stories',
-      price: money(Math.round(base * 1.8)),
-      includes: '1 Reel + 3 Stories, usage 30d',
-      turnaround: '7-day turnaround'
-    }
-  ]
 }
 
 function EmptyState({ children }) {
@@ -71,6 +49,10 @@ export default function CreatorProfilePage() {
   // profile-service adds bio/languages for creators who've completed a profile;
   // seeded catalog creators have no profile row, so tolerate its 404.
   const { data: profile } = useGetCreatorProfileQuery(id, { skip: !id })
+  // Public read: visible packages only, and an empty list when the creator has
+  // hidden their card.
+  const { data: rateCard } = useGetCreatorRateCardQuery(id, { skip: !id })
+  const packages = (rateCard || {}).packages || []
 
   if (isFetching && !creator) {
     return (
@@ -131,8 +113,6 @@ export default function CreatorProfilePage() {
       label: 'From / post'
     }
   ]
-
-  const packages = ratePackages(creator.rate_per_post)
 
   const onMessage = async () => {
     try {
@@ -253,13 +233,8 @@ export default function CreatorProfilePage() {
               </div>
               {packages.length ? (
                 <div className="nd-stack" style={{ gap: 12 }}>
-                  {packages.map((pk) => (
-                    <div
-                      className={
-                        pk.featured ? 'cp__pkg cp__pkg--featured' : 'cp__pkg'
-                      }
-                      key={pk.name}
-                    >
+                  {packages.map((pk, i) => (
+                    <div className="cp__pkg" key={i}>
                       <div className="nd-between">
                         <span className="nd-h3" style={{ fontSize: '0.85rem' }}>
                           {pk.name}
@@ -268,30 +243,24 @@ export default function CreatorProfilePage() {
                           className="nd-mono"
                           style={{ fontSize: '1rem', fontWeight: 500 }}
                         >
-                          {pk.price}
+                          {money(pk.price)}
                         </span>
                       </div>
                       <div
                         className="nd-ink2"
                         style={{ fontSize: '0.75rem', lineHeight: 1.55 }}
                       >
-                        {pk.includes}
+                        {summarizeItems(pk.items)}
+                        {pk.description ? ` · ${pk.description}` : ''}
                       </div>
                       <div
                         className="nd-mono nd-muted"
                         style={{ fontSize: '0.68rem' }}
                       >
-                        {pk.turnaround}
+                        {pk.turnaround_days}-day turnaround
                       </div>
                     </div>
                   ))}
-                  <div
-                    className="nd-muted"
-                    style={{ fontSize: '0.68rem', lineHeight: 1.5 }}
-                  >
-                    Indicative pricing from a {money(creator.rate_per_post)}{' '}
-                    base rate. Creators can counter on any offer.
-                  </div>
                 </div>
               ) : (
                 <EmptyState>Rate card not published yet.</EmptyState>
