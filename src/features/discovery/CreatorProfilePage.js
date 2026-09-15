@@ -51,7 +51,8 @@ export default function CreatorProfilePage() {
   const { data: profile } = useGetCreatorProfileQuery(id, { skip: !id })
   // Public read: visible packages only, and an empty list when the creator has
   // hidden their card.
-  const { data: rateCard } = useGetCreatorRateCardQuery(id, { skip: !id })
+  const { data: rateCard, isFetching: rateCardFetching } =
+    useGetCreatorRateCardQuery(id, { skip: !id })
   const packages = (rateCard || {}).packages || []
 
   if (isFetching && !creator) {
@@ -231,7 +232,9 @@ export default function CreatorProfilePage() {
                   USD
                 </span>
               </div>
-              {packages.length ? (
+              {rateCardFetching && !rateCard ? (
+                <p className="nd-muted">Loading rate card…</p>
+              ) : packages.length ? (
                 <div className="nd-stack" style={{ gap: 12 }}>
                   {packages.map((pk, i) => (
                     <div className="cp__pkg" key={i}>
