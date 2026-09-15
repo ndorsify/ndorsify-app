@@ -4,7 +4,11 @@ import { PLATFORM_OPTIONS, TYPE_OPTIONS, summarizeItems } from './helpers'
 let nextKey = 0
 const localKey = () => `pkg-${(nextKey += 1)}`
 
+let nextItemKey = 0
+const localItemKey = () => `item-${(nextItemKey += 1)}`
+
 export const newItem = () => ({
+  key: localItemKey(),
   platform: 'instagram',
   type: 'post',
   quantity: 1
@@ -91,7 +95,7 @@ export default function RateCardEditor({ packages, onChange, errors = [] }) {
               <div
                 className="nd-row"
                 data-testid="rate-item"
-                key={j}
+                key={item.key}
                 style={{ gap: 8 }}
               >
                 <select
