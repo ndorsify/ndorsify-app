@@ -8,7 +8,11 @@ import RateCardEditor, { newPackage } from './RateCardEditor'
 function Harness({ initial = [], errors = [] }) {
   const [packages, setPackages] = useState(initial)
   return (
-    <RateCardEditor packages={packages} onChange={setPackages} errors={errors} />
+    <RateCardEditor
+      packages={packages}
+      onChange={setPackages}
+      errors={errors}
+    />
   )
 }
 
@@ -26,7 +30,9 @@ test('starts empty and adds a package', () => {
   expect(within(card).getByLabelText('Price in dollars')).toHaveValue('')
   expect(within(card).getByLabelText("What's included")).toHaveValue('')
   expect(within(card).getByLabelText('Turnaround in days')).toHaveValue('7')
-  expect(within(card).getByRole('button', { pressed: true })).toBeInTheDocument()
+  expect(
+    within(card).getByRole('button', { pressed: true })
+  ).toBeInTheDocument()
 
   expect(within(card).getAllByTestId('rate-item')).toHaveLength(1)
   const item = within(card).getAllByTestId('rate-item')[0]
@@ -44,7 +50,9 @@ test('adds and removes an item within a package', () => {
   expect(within(packageCards()[0]).getAllByTestId('rate-item')).toHaveLength(2)
 
   userEvent.click(
-    within(packageCards()[0]).getAllByRole('button', { name: /remove item/i })[0]
+    within(packageCards()[0]).getAllByRole('button', {
+      name: /remove item/i
+    })[0]
   )
   expect(within(packageCards()[0]).getAllByTestId('rate-item')).toHaveLength(1)
 })
@@ -57,7 +65,9 @@ test('removing the last item leaves the package present with zero items', () => 
   userEvent.click(within(card).getByRole('button', { name: /remove item/i }))
 
   expect(packageCards()).toHaveLength(1)
-  expect(within(packageCards()[0]).queryAllByTestId('rate-item')).toHaveLength(0)
+  expect(within(packageCards()[0]).queryAllByTestId('rate-item')).toHaveLength(
+    0
+  )
 })
 
 test('removes a package', () => {
@@ -78,13 +88,53 @@ test('removing the last package returns the editor to its empty state', () => {
   expect(screen.getByText(/no packages yet/i)).toBeInTheDocument()
 })
 
+test('editing one item in a loaded package leaves the other item untouched', () => {
+  // Mirrors data loaded from the server: items already carry stable keys
+  // (as ProfileEditPage's seeding effect now mints), not freshly-minted
+  // ones from newItem(). Two items with distinct values guard against a
+  // row-identity mixup if item rows were ever keyed by position instead.
+  const pkg = {
+    ...newPackage(),
+    items: [
+      { key: 'saved-0-0', platform: 'instagram', type: 'post', quantity: 1 },
+      { key: 'saved-0-1', platform: 'tiktok', type: 'video', quantity: 2 }
+    ]
+  }
+  render(<Harness initial={[pkg]} />)
+  const card = packageCards()[0]
+  const items = within(card).getAllByTestId('rate-item')
+  expect(items).toHaveLength(2)
+
+  userEvent.clear(within(items[0]).getByLabelText('Item quantity'))
+  userEvent.type(within(items[0]).getByLabelText('Item quantity'), '9')
+
+  const updatedItems = within(packageCards()[0]).getAllByTestId('rate-item')
+  expect(within(updatedItems[0]).getByLabelText('Item quantity')).toHaveValue(
+    '9'
+  )
+  expect(
+    within(updatedItems[1]).getByDisplayValue('TikTok')
+  ).toBeInTheDocument()
+  expect(within(updatedItems[1]).getByDisplayValue('Video')).toBeInTheDocument()
+  expect(within(updatedItems[1]).getByLabelText('Item quantity')).toHaveValue(
+    '2'
+  )
+})
+
 test('shows an error against the package it belongs to', () => {
   render(
     <Harness
       initial={[newPackage(), newPackage()]}
-      errors={[{ index: 1, message: 'Price must be a whole dollar amount of at least $1' }]}
+      errors={[
+        {
+          index: 1,
+          message: 'Price must be a whole dollar amount of at least $1'
+        }
+      ]}
     />
   )
   expect(within(packageCards()[0]).queryByText(/whole dollar/i)).toBeNull()
-  expect(within(packageCards()[1]).getByText(/whole dollar/i)).toBeInTheDocument()
+  expect(
+    within(packageCards()[1]).getByText(/whole dollar/i)
+  ).toBeInTheDocument()
 })

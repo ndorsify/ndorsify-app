@@ -39,7 +39,7 @@ function CreatorEditor({ userId }) {
     avatar_url: ''
   })
   const { data: rateCard } = useGetMyRateCardQuery()
-  const [saveRateCard] = useSaveRateCardMutation()
+  const [saveRateCard, { error: rateSaveError }] = useSaveRateCardMutation()
 
   const [packages, setPackages] = useState([])
   const [hidden, setHidden] = useState(false)
@@ -67,7 +67,14 @@ function CreatorEditor({ userId }) {
   useEffect(() => {
     if (rateCard) {
       setPackages(
-        (rateCard.packages || []).map((p, i) => ({ ...p, key: `saved-${i}` }))
+        (rateCard.packages || []).map((p, i) => ({
+          ...p,
+          key: `saved-${i}`,
+          items: (p.items || []).map((it, j) => ({
+            ...it,
+            key: `saved-${i}-${j}`
+          }))
+        }))
       )
       setHidden(Boolean(rateCard.hidden))
     }
@@ -267,6 +274,9 @@ function CreatorEditor({ userId }) {
             </div>
           </div>
           {error && <p className="nd-error">{apiErrorMessage(error)}</p>}
+          {rateSaveError && (
+            <p className="nd-error">{apiErrorMessage(rateSaveError)}</p>
+          )}
           {rateErrors.length > 0 && (
             <p className="nd-error">
               Fix the highlighted packages, then publish.
