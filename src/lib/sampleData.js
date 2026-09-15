@@ -294,31 +294,6 @@ export const audience = [
   { label: 'United Kingdom', value: '14%' }
 ]
 
-/* ---- rate-card packages (1c / 2c) --------------------------------------- */
-export const ratePackages = [
-  {
-    name: 'Single Reel',
-    price: '$1,600',
-    includes: '1 Reel, 30–45s · 1 revision · organic rights 30d',
-    turnaround: '5-day turnaround',
-    featured: true
-  },
-  {
-    name: 'Reel + Stories',
-    price: '$2,400',
-    includes: '1 Reel + 3 Stories · 1 revision · swipe-up links',
-    turnaround: '7-day turnaround',
-    featured: false
-  },
-  {
-    name: 'Launch bundle',
-    price: '$3,200',
-    includes: '2 Reels + 3 Stories · script pass · 2 revisions',
-    turnaround: '10-day turnaround',
-    featured: false
-  }
-]
-
 /* ---- 2a creator inbox ---------------------------------------------------- */
 export const creatorTiles = [
   {
@@ -478,36 +453,6 @@ export const editorNav = [
   { label: 'Platforms', badge: '4', active: false },
   { label: 'Audience', badge: '', active: false },
   { label: 'Availability', badge: '', active: false }
-]
-export const connectedPlatforms = [
-  {
-    tag: 'IG',
-    name: 'Instagram',
-    detail: '@mayaokonkwo · 184K · API linked',
-    state: 'Live',
-    ok: true
-  },
-  {
-    tag: 'TT',
-    name: 'TikTok',
-    detail: '@mayaokonkwo · 96K · API linked',
-    state: 'Live',
-    ok: true
-  },
-  {
-    tag: 'YT',
-    name: 'YouTube',
-    detail: 'Not connected',
-    state: 'Connect',
-    ok: false
-  },
-  {
-    tag: 'X',
-    name: 'X / Twitter',
-    detail: '@maya_o · manual metrics',
-    state: 'Review',
-    ok: false
-  }
 ]
 
 /* ---- 2d earnings --------------------------------------------------------- */

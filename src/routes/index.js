@@ -28,7 +28,8 @@ const PAGE_ROUTES = {
   CONTRACT: '/deals/:id/contract',
   DRAFT_REVIEW: '/deals/:id/review',
   EARNINGS: '/earnings',
-  COLLABORATIONS: '/collaborations-board'
+  COLLABORATIONS: '/collaborations-board',
+  SOCIAL_CALLBACK: '/social/:platform/callback'
 }
 
 // Build a concrete path from a `:param` template.
