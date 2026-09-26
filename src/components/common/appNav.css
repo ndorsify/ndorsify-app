@@ -29,8 +29,8 @@
   text-decoration: none;
 }
 .nd-brand__mark {
-  width: 22px;
-  height: 22px;
+  width: 21px;
+  height: 21px;
   flex: none;
   background: url('/logo-mark.png') center / contain no-repeat;
 }
