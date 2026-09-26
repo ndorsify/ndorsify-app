@@ -6,9 +6,9 @@ import { Avatar } from '../../components/common/ds'
 import {
   footerCols,
   landingFeatures,
-  landingLogos,
   landingStats
 } from '../../lib/sampleData'
+import { brandLogos } from './brandLogos'
 
 // Creators shown in the hero's Discover dashboard mockup.
 const heroCreators = [
@@ -267,9 +267,9 @@ export default function LandingPage() {
             Trusted by 2,300+ brands
           </span>
           <div className="lp__logo-row">
-            {landingLogos.map((l) => (
-              <div className="lp__logo" key={l}>
-                {l}
+            {brandLogos.map(({ name, Logo }) => (
+              <div className="lp__logo" key={name}>
+                <Logo />
               </div>
             ))}
           </div>

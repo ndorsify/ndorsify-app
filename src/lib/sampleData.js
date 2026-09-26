@@ -29,14 +29,6 @@ export const heroMatches = [
     engagement: '4.2%'
   }
 ]
-export const landingLogos = [
-  'Kettle & Fern',
-  'Aurelia',
-  'Northwind',
-  'Bloom',
-  'Poms',
-  'Verá'
-]
 export const landingStats = [
   { value: '12,480', label: 'Vetted creators across 9 platforms' },
   { value: '$0', label: 'Platform fee for creators' },
