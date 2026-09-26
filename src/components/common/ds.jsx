@@ -22,8 +22,8 @@ export function Kpi({ label, value, delta, note, trend = 'up' }) {
     trend === 'down'
       ? 'nd-delta--down'
       : trend === 'flat'
-      ? 'nd-delta--flat'
-      : 'nd-delta--up'
+        ? 'nd-delta--flat'
+        : 'nd-delta--up'
   return (
     <div className="nd-kpi">
       <div className="nd-kpi__label">{label}</div>

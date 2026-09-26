@@ -5,7 +5,7 @@ High-level architecture map for LLM agents working in this repo. For commands se
 
 ## What this is
 
-The Ndorsify web client — a React (Create React App, React 17) frontend for a
+The Ndorsify web client — a React 19 + Vite frontend for a
 two-sided platform connecting **brands** with **creators/influencers** for
 endorsements and campaigns. After the **indigo-rebrand redesign** the app ships a
 full marketplace shell for both roles: public landing, auth, role-aware
@@ -17,7 +17,7 @@ catching up.
 
 ## Stack
 
-- React 17 via Create React App (`react-scripts` 4).
+- React 19, built and served by Vite; Vitest + Testing Library for tests.
 - Redux Toolkit + **RTK Query** (one api slice per feature) + `redux-persist`.
 - `react-router-dom` for routing. Prettier for formatting.
 

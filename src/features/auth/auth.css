@@ -87,7 +87,10 @@
   cursor: pointer;
   text-align: left;
   font: inherit;
-  transition: border-color 0.12s, box-shadow 0.12s, background 0.12s;
+  transition:
+    border-color 0.12s,
+    box-shadow 0.12s,
+    background 0.12s;
 }
 .auth__role:hover {
   border-color: var(--accent);

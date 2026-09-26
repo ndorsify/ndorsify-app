@@ -35,18 +35,18 @@ workflow:
 
 ## What's in the app
 
-| | Screen | What it does |
-|---|---|---|
-| 🔎 | **Discover** | Search a vetted creator catalog by platform, follower band, engagement, niche, verified status, and rate — with a live filter panel, chips, and shortlists. |
-| 📣 | **Campaigns** | Build a brief (objective, budget, dates) and publish to the marketplace; creators apply. |
-| 🤝 | **Collaborations** | A board driving each deliverable through `accepted → submitted → approved → live`, with version history and a timeline. |
-| 💬 | **Messages** | Real 1:1 inbox between brands and creators. |
-| 👤 | **Profiles** | Public creator profiles with audience stats, rate cards, and verified badges. |
-| 💰 | **Earnings & Reports** | Campaign performance and creator payout dashboards. |
+|     | Screen                 | What it does                                                                                                                                                |
+| --- | ---------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 🔎  | **Discover**           | Search a vetted creator catalog by platform, follower band, engagement, niche, verified status, and rate — with a live filter panel, chips, and shortlists. |
+| 📣  | **Campaigns**          | Build a brief (objective, budget, dates) and publish to the marketplace; creators apply.                                                                    |
+| 🤝  | **Collaborations**     | A board driving each deliverable through `accepted → submitted → approved → live`, with version history and a timeline.                                     |
+| 💬  | **Messages**           | Real 1:1 inbox between brands and creators.                                                                                                                 |
+| 👤  | **Profiles**           | Public creator profiles with audience stats, rate cards, and verified badges.                                                                               |
+| 💰  | **Earnings & Reports** | Campaign performance and creator payout dashboards.                                                                                                         |
 
 ## Tech stack
 
-- **React 18** (Create React App)
+- **React 19** on **Vite**
 - **Redux Toolkit + RTK Query** for state and data fetching (with silent
   token-refresh on 401)
 - A shared **`nd-*` design system** — see [`src/styles/ndorsify.css`](src/styles/ndorsify.css)
@@ -55,7 +55,7 @@ workflow:
 
 ## Getting started
 
-**Prerequisites:** Node.js (tested on Node 24) and npm.
+**Prerequisites:** Node.js 24 LTS (see `.nvmrc`) and npm.
 
 ```bash
 npm install
@@ -63,10 +63,6 @@ npm start
 ```
 
 The dev server runs on **http://localhost:3000**.
-
-> On modern Node, `react-scripts` 4 may fail with an OpenSSL error
-> (`digital envelope routines::unsupported`). If so, run:
-> `NODE_OPTIONS=--openssl-legacy-provider npm start`.
 
 ### Run the full stack (frontend + all backend services)
 
@@ -84,13 +80,13 @@ for running the services on their own.
 
 ## Common commands
 
-| Command | What it does |
-| --- | --- |
-| `npm start` | Run the dev server |
-| `npm run build` | Production build to `build/` |
-| `npm test` | Jest in watch mode (`CI=true npm test` runs once) |
-| `npm run format` | Auto-format with Prettier |
-| `npm run check` | Check formatting |
+| Command          | What it does                                      |
+| ---------------- | ------------------------------------------------- |
+| `npm start`      | Run the dev server                                |
+| `npm run build`  | Production build to `dist/`                       |
+| `npm test`       | Vitest, once (`npm run test:watch` to watch)      |
+| `npm run format` | Auto-format with Prettier                         |
+| `npm run check`  | Check formatting                                  |
 
 ## Project structure
 

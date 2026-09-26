@@ -4,6 +4,9 @@ import userEvent from '@testing-library/user-event'
 
 import RateCardEditor, { newPackage } from './RateCardEditor'
 
+// user-event v14 dispatches asynchronously — every interaction is awaited.
+const user = userEvent.setup()
+
 // The editor is controlled; this wrapper supplies the state its parent owns.
 function Harness({ initial = [], errors = [] }) {
   const [packages, setPackages] = useState(initial)
@@ -18,11 +21,11 @@ function Harness({ initial = [], errors = [] }) {
 
 const packageCards = () => screen.getAllByTestId('rate-package')
 
-test('starts empty and adds a package', () => {
+test('starts empty and adds a package', async () => {
   render(<Harness />)
   expect(screen.queryAllByTestId('rate-package')).toHaveLength(0)
 
-  userEvent.click(screen.getByRole('button', { name: /add package/i }))
+  await user.click(screen.getByRole('button', { name: /add package/i }))
   expect(packageCards()).toHaveLength(1)
 
   const card = packageCards()[0]
@@ -41,15 +44,15 @@ test('starts empty and adds a package', () => {
   expect(within(item).getByLabelText('Item quantity')).toHaveValue('1')
 })
 
-test('adds and removes an item within a package', () => {
+test('adds and removes an item within a package', async () => {
   render(<Harness initial={[newPackage()]} />)
   const card = packageCards()[0]
   expect(within(card).getAllByTestId('rate-item')).toHaveLength(1)
 
-  userEvent.click(within(card).getByRole('button', { name: /add item/i }))
+  await user.click(within(card).getByRole('button', { name: /add item/i }))
   expect(within(packageCards()[0]).getAllByTestId('rate-item')).toHaveLength(2)
 
-  userEvent.click(
+  await user.click(
     within(packageCards()[0]).getAllByRole('button', {
       name: /remove item/i
     })[0]
@@ -57,12 +60,12 @@ test('adds and removes an item within a package', () => {
   expect(within(packageCards()[0]).getAllByTestId('rate-item')).toHaveLength(1)
 })
 
-test('removing the last item leaves the package present with zero items', () => {
+test('removing the last item leaves the package present with zero items', async () => {
   render(<Harness initial={[newPackage()]} />)
   const card = packageCards()[0]
   expect(within(card).getAllByTestId('rate-item')).toHaveLength(1)
 
-  userEvent.click(within(card).getByRole('button', { name: /remove item/i }))
+  await user.click(within(card).getByRole('button', { name: /remove item/i }))
 
   expect(packageCards()).toHaveLength(1)
   expect(within(packageCards()[0]).queryAllByTestId('rate-item')).toHaveLength(
@@ -70,25 +73,27 @@ test('removing the last item leaves the package present with zero items', () => 
   )
 })
 
-test('removes a package', () => {
+test('removes a package', async () => {
   render(<Harness initial={[newPackage(), newPackage()]} />)
   expect(packageCards()).toHaveLength(2)
 
-  userEvent.click(screen.getAllByRole('button', { name: /remove package/i })[0])
+  await user.click(
+    screen.getAllByRole('button', { name: /remove package/i })[0]
+  )
   expect(packageCards()).toHaveLength(1)
 })
 
-test('removing the last package returns the editor to its empty state', () => {
+test('removing the last package returns the editor to its empty state', async () => {
   render(<Harness initial={[newPackage()]} />)
   expect(packageCards()).toHaveLength(1)
 
-  userEvent.click(screen.getByRole('button', { name: /remove package/i }))
+  await user.click(screen.getByRole('button', { name: /remove package/i }))
 
   expect(screen.queryAllByTestId('rate-package')).toHaveLength(0)
   expect(screen.getByText(/no packages yet/i)).toBeInTheDocument()
 })
 
-test('editing one item in a loaded package leaves the other item untouched', () => {
+test('editing one item in a loaded package leaves the other item untouched', async () => {
   // Mirrors data loaded from the server: items already carry stable keys
   // (as ProfileEditPage's seeding effect now mints), not freshly-minted
   // ones from newItem(). Two items with distinct values guard against a
@@ -105,8 +110,8 @@ test('editing one item in a loaded package leaves the other item untouched', () 
   const items = within(card).getAllByTestId('rate-item')
   expect(items).toHaveLength(2)
 
-  userEvent.clear(within(items[0]).getByLabelText('Item quantity'))
-  userEvent.type(within(items[0]).getByLabelText('Item quantity'), '9')
+  await user.clear(within(items[0]).getByLabelText('Item quantity'))
+  await user.type(within(items[0]).getByLabelText('Item quantity'), '9')
 
   const updatedItems = within(packageCards()[0]).getAllByTestId('rate-item')
   expect(within(updatedItems[0]).getByLabelText('Item quantity')).toHaveValue(
@@ -121,7 +126,7 @@ test('editing one item in a loaded package leaves the other item untouched', () 
   )
 })
 
-test('hides "+ Add package" once the package cap is reached', () => {
+test('hides "+ Add package" once the package cap is reached', async () => {
   const packages = Array.from({ length: 10 }, () => newPackage())
   render(<Harness initial={packages} />)
   expect(packageCards()).toHaveLength(10)
@@ -130,7 +135,7 @@ test('hides "+ Add package" once the package cap is reached', () => {
   ).not.toBeInTheDocument()
 })
 
-test('hides "+ Add item" once a package reaches its item cap', () => {
+test('hides "+ Add item" once a package reaches its item cap', async () => {
   const pkg = {
     ...newPackage(),
     items: Array.from({ length: 10 }, (_, j) => ({
@@ -148,7 +153,7 @@ test('hides "+ Add item" once a package reaches its item cap', () => {
   ).not.toBeInTheDocument()
 })
 
-test('shows an error against the package it belongs to', () => {
+test('shows an error against the package it belongs to', async () => {
   render(
     <Harness
       initial={[newPackage(), newPackage()]}

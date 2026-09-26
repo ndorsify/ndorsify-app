@@ -343,8 +343,8 @@ export default function CampaignBuilderPage() {
       label: isLoading
         ? 'Publishing…'
         : inviteCount > 0
-        ? `Publish & send ${inviteCount} invite${inviteCount === 1 ? '' : 's'}`
-        : 'Publish campaign',
+          ? `Publish & send ${inviteCount} invite${inviteCount === 1 ? '' : 's'}`
+          : 'Publish campaign',
       onClick: onPublish
     }
   }[step]
@@ -1437,10 +1437,10 @@ function PublishRail({
         {publishing
           ? 'Publishing…'
           : selectedCreators.length > 0
-          ? `Publish & send ${selectedCreators.length} invite${
-              selectedCreators.length === 1 ? '' : 's'
-            }`
-          : 'Publish campaign →'}
+            ? `Publish & send ${selectedCreators.length} invite${
+                selectedCreators.length === 1 ? '' : 's'
+              }`
+            : 'Publish campaign →'}
       </button>
       {(localError || error) && (
         <p className="nd-error">{localError || apiErrorMessage(error)}</p>

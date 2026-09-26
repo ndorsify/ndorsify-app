@@ -58,14 +58,18 @@
   border: 1px solid var(--line-2);
   background: var(--surface);
   cursor: pointer;
-  transition: border-color 0.12s, box-shadow 0.12s;
+  transition:
+    border-color 0.12s,
+    box-shadow 0.12s;
 }
 .co__method:hover {
   border-color: var(--accent);
 }
 .co__method.is-on {
   border-color: var(--accent);
-  box-shadow: 0 0 0 1px var(--accent), var(--shadow-card);
+  box-shadow:
+    0 0 0 1px var(--accent),
+    var(--shadow-card);
 }
 .co__method-tag {
   font-size: 0.66rem;

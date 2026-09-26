@@ -51,7 +51,7 @@ const jsonResponse = (body) => {
 }
 
 beforeEach(() => {
-  global.fetch = jest.fn()
+  global.fetch = vi.fn()
 })
 
 afterEach(() => {
