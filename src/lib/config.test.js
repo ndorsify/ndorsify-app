@@ -23,24 +23,18 @@ test('per-service overrides still win locally', async () => {
 test('a base collapses every service onto one origin', async () => {
   vi.stubEnv('REACT_APP_API_BASE', '/api')
   const urls = await load()
-  expect(urls).toEqual({
-    users: '/api/users',
-    profile: '/api/profiles',
-    messaging: '/api/messaging',
-    discovery: '/api/discovery',
-    dynamicContent: '/api/content',
-    campaign: '/api/campaigns',
-    collaboration: '/api/collab'
-  })
+  // One base for all seven: each slice's own paths (/auth/login, /campaigns,
+  // /discovery/creators) are what the deployed services already serve.
+  expect(new Set(Object.values(urls))).toEqual(new Set(['/api']))
 })
 
 test('the base wins over a stale per-service override', async () => {
   vi.stubEnv('REACT_APP_API_BASE', '/api')
   vi.stubEnv('REACT_APP_USERS_URL', 'http://localhost:1000')
-  expect((await load()).users).toBe('/api/users')
+  expect((await load()).users).toBe('/api')
 })
 
-test('a trailing slash on the base does not double up', async () => {
+test('a trailing slash on the base is trimmed', async () => {
   vi.stubEnv('REACT_APP_API_BASE', 'https://api.ndorsify.com/')
-  expect((await load()).users).toBe('https://api.ndorsify.com/users')
+  expect((await load()).users).toBe('https://api.ndorsify.com')
 })
