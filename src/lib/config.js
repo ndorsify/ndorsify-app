@@ -1,7 +1,7 @@
 // Per-service base URLs. Until an API gateway lands, the SPA holds one base URL
 // per service (see docs/plans/technical-specifications/ui-foundation.md §3).
 // When the gateway arrives, collapse these to a single REACT_APP_API_URL.
-const env = process.env
+const env = import.meta.env
 
 export const SERVICE_URLS = {
   users: env.REACT_APP_USERS_URL || 'http://localhost:1000',

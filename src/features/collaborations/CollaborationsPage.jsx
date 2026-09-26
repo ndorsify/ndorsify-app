@@ -3,8 +3,10 @@ import { useSelector } from 'react-redux'
 
 import '../campaigns/campaigns.css'
 import AppNav from '../../components/common/AppNav'
+import { apiErrorMessage } from '../../lib/errors'
 import { selectUser } from '../auth/authSlice'
-import { splitList } from '../profile/helpers'
+import { useSignDownloadMutation } from '../media/mediaApi'
+import { useUpload } from '../media/useUpload'
 import {
   useCollaborationTimelineQuery,
   useMarkLiveMutation,
@@ -29,32 +31,106 @@ const deliverableLabel = (deliverables, id) => {
   return d ? `${d.platform || '—'} · ${d.type || '—'}` : `Deliverable #${id}`
 }
 
-function CreatorSubmit({ deliverableId }) {
-  const [submit, { isLoading }] = useSubmitDeliverableMutation()
-  const [files, setFiles] = useState('')
-  const [note, setNote] = useState('')
-  const onSubmit = (e) => {
-    e.preventDefault()
-    submit({ deliverableId, file_refs: splitList(files), note })
+// What a creator can hand over as a deliverable — mirrors the service's
+// ALLOWED_CONTENT_TYPES, which rejects anything else at sign time anyway.
+const ACCEPTED_UPLOADS = 'image/*,video/mp4,video/quicktime,application/pdf'
+
+function SubmissionFiles({ fileRefs }) {
+  const [signDownload, { isLoading }] = useSignDownloadMutation()
+  const [error, setError] = useState('')
+
+  const open = async (key) => {
+    setError('')
+    try {
+      const { download_url: url } = await signDownload(key).unwrap()
+      window.open(url, '_blank', 'noopener')
+    } catch {
+      setError('That file is no longer available')
+    }
   }
+
   return (
-    <form className="nd-row nd-wrap" style={{ gap: 8 }} onSubmit={onSubmit}>
-      <input
-        className="nd-input nd-grow"
-        placeholder="File keys (comma)"
-        value={files}
-        onChange={(e) => setFiles(e.target.value)}
-      />
-      <input
-        className="nd-input"
-        style={{ maxWidth: 200 }}
-        placeholder="Note"
-        value={note}
-        onChange={(e) => setNote(e.target.value)}
-      />
-      <button className="nd-btn nd-btn--primary nd-btn--sm" type="submit">
-        {isLoading ? '…' : 'Submit'}
-      </button>
+    <div className="nd-stack" style={{ gap: 2 }}>
+      <div className="nd-row nd-wrap" style={{ gap: 8 }}>
+        {fileRefs.map((key) => (
+          <button
+            key={key}
+            className="nd-btn nd-btn--ghost nd-btn--sm"
+            disabled={isLoading}
+            onClick={() => open(key)}
+          >
+            {key.split('/').pop()}
+          </button>
+        ))}
+      </div>
+      {error && (
+        <span className="nd-error" style={{ fontSize: '0.76rem' }}>
+          {error}
+        </span>
+      )}
+    </div>
+  )
+}
+
+function CreatorSubmit({ deliverableId, collaborationId }) {
+  const [submit, { isLoading }] = useSubmitDeliverableMutation()
+  const [upload, isUploading] = useUpload()
+  const [files, setFiles] = useState([])
+  const [note, setNote] = useState('')
+  const [error, setError] = useState('')
+
+  const onSubmit = async (e) => {
+    e.preventDefault()
+    setError('')
+    if (files.length === 0) {
+      setError('Attach at least one file')
+      return
+    }
+    try {
+      const fileRefs = await upload(files, {
+        scope: 'submissions',
+        refId: collaborationId
+      })
+      await submit({ deliverableId, file_refs: fileRefs, note }).unwrap()
+      setFiles([])
+      setNote('')
+      e.target.reset()
+    } catch (err) {
+      setError(err?.message || apiErrorMessage(err, 'Could not submit'))
+    }
+  }
+
+  const busy = isUploading || isLoading
+  return (
+    <form className="nd-stack" style={{ gap: 6 }} onSubmit={onSubmit}>
+      <div className="nd-row nd-wrap" style={{ gap: 8 }}>
+        <input
+          className="nd-input nd-grow"
+          type="file"
+          multiple
+          accept={ACCEPTED_UPLOADS}
+          onChange={(e) => setFiles(Array.from(e.target.files))}
+        />
+        <input
+          className="nd-input"
+          style={{ maxWidth: 200 }}
+          placeholder="Note"
+          value={note}
+          onChange={(e) => setNote(e.target.value)}
+        />
+        <button
+          className="nd-btn nd-btn--primary nd-btn--sm"
+          type="submit"
+          disabled={busy}
+        >
+          {isUploading ? 'Uploading…' : isLoading ? '…' : 'Submit'}
+        </button>
+      </div>
+      {error && (
+        <span className="nd-error" style={{ fontSize: '0.76rem' }}>
+          {error}
+        </span>
+      )}
     </form>
   )
 }
@@ -88,7 +164,7 @@ function BrandReview({ deliverableId }) {
   )
 }
 
-function DeliverableRow({ deliverable, isBrand, isCreator }) {
+function DeliverableRow({ deliverable, collaborationId, isBrand, isCreator }) {
   const [markLive] = useMarkLiveMutation()
   const d = deliverable
   return (
@@ -112,7 +188,10 @@ function DeliverableRow({ deliverable, isBrand, isCreator }) {
       <div>
         {isCreator &&
           (d.status === 'todo' || d.status === 'changes_requested') && (
-            <CreatorSubmit deliverableId={d.id} />
+            <CreatorSubmit
+              deliverableId={d.id}
+              collaborationId={collaborationId}
+            />
           )}
         {isBrand && d.status === 'submitted' && (
           <BrandReview deliverableId={d.id} />
@@ -168,6 +247,10 @@ function TimelinePanel({ collaborationId, deliverables }) {
                 “{e.detail.note}”
               </span>
             )}
+            {e.kind === 'submission' &&
+              (e.detail.file_refs || []).length > 0 && (
+                <SubmissionFiles fileRefs={e.detail.file_refs} />
+              )}
             {e.kind === 'review' && e.detail.feedback && (
               <span className="nd-muted" style={{ fontSize: '0.76rem' }}>
                 “{e.detail.feedback}”
@@ -217,6 +300,7 @@ function CollaborationCard({ collaboration, isBrand, isCreator }) {
           <DeliverableRow
             key={d.id}
             deliverable={d}
+            collaborationId={c.id}
             isBrand={isBrand}
             isCreator={isCreator}
           />

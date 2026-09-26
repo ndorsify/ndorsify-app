@@ -16,7 +16,14 @@ const PLATFORMS = [
   { id: 'twitter', name: 'X', tag: 'X' }
 ]
 
-function PlatformRow({ platform, account, busy, onConnect, onSync, onDisconnect }) {
+function PlatformRow({
+  platform,
+  account,
+  busy,
+  onConnect,
+  onSync,
+  onDisconnect
+}) {
   const connected = Boolean(account)
 
   return (
@@ -86,8 +93,13 @@ function PlatformRow({ platform, account, busy, onConnect, onSync, onDisconnect 
  * numbers they never entered.
  */
 export default function ConnectedPlatforms() {
-  const { data: accounts = [], isLoading, error } = useListMySocialAccountsQuery()
-  const [startConnect, { isLoading: connecting }] = useStartSocialConnectMutation()
+  const {
+    data: accounts = [],
+    isLoading,
+    error
+  } = useListMySocialAccountsQuery()
+  const [startConnect, { isLoading: connecting }] =
+    useStartSocialConnectMutation()
   const [syncAccount, { isLoading: syncing }] = useSyncSocialAccountMutation()
   const [disconnect, { isLoading: disconnecting }] =
     useDisconnectSocialAccountMutation()

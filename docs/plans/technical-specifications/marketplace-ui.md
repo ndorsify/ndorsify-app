@@ -23,21 +23,21 @@ showing demo rows, so "UI done" is never mistaken for "wired to live data."
 Derived from the "Ndorsify Canvas" design artboard. Indigo accent (`#574FE0`) on
 a light canvas, teal for success/escrow-released, amber for warnings/expiry.
 
-| Layer | Location | Contents |
-| --- | --- | --- |
-| Theme tokens | [`src/index.css`](../../../src/index.css) | `--accent`, `--accent-press/soft`, `--ink`, `--ink-soft`, `--canvas`, `--line`, `--success`, `--warn` |
-| Component classes | [`src/styles/ndorsify.css`](../../../src/styles/ndorsify.css) | `nd-page`, `nd-card`, `nd-btn`, `nd-pill`, `nd-kpi`, `nd-meter`, `nd-topnav`, `nd-nav`, … |
-| React primitives | [`src/components/common/ds.js`](../../../src/components/common/ds.js) | `Avatar`, `Kpi`, `Meter`, `Toggle`, `ChartPlaceholder`, `SampleBanner` |
-| App chrome | [`src/components/common/AppNav.js`](../../../src/components/common/AppNav.js) | Brandmark + role-aware top nav + primary action |
+| Layer             | Location                                                                      | Contents                                                                                              |
+| ----------------- | ----------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------- |
+| Theme tokens      | [`src/index.css`](../../../src/index.css)                                     | `--accent`, `--accent-press/soft`, `--ink`, `--ink-soft`, `--canvas`, `--line`, `--success`, `--warn` |
+| Component classes | [`src/styles/ndorsify.css`](../../../src/styles/ndorsify.css)                 | `nd-page`, `nd-card`, `nd-btn`, `nd-pill`, `nd-kpi`, `nd-meter`, `nd-topnav`, `nd-nav`, …             |
+| React primitives  | [`src/components/common/ds.js`](../../../src/components/common/ds.js)         | `Avatar`, `Kpi`, `Meter`, `Toggle`, `ChartPlaceholder`, `SampleBanner`                                |
+| App chrome        | [`src/components/common/AppNav.js`](../../../src/components/common/AppNav.js) | Brandmark + role-aware top nav + primary action                                                       |
 
 ### Role-aware navigation
 
 The top nav switches label set and primary action by `user.role`:
 
-| | Brand | Creator |
-| --- | --- | --- |
-| Nav links | Dashboard · Discover · Campaigns · Messages · Reports | Opportunities · My deals · Messages · Earnings · Profile |
-| Primary action | **New campaign** button | **Open to work** availability pill |
+|                | Brand                                                 | Creator                                                  |
+| -------------- | ----------------------------------------------------- | -------------------------------------------------------- |
+| Nav links      | Dashboard · Discover · Campaigns · Messages · Reports | Opportunities · My deals · Messages · Earnings · Profile |
+| Primary action | **New campaign** button                               | **Open to work** availability pill                       |
 
 Both point at the same routes; the labels reframe them per audience (e.g.
 `/dashboard` is "Dashboard" for brands, "Opportunities" for creators;
@@ -53,29 +53,29 @@ for logged-out visitors and redirects authed users to `/dashboard`.
 
 ### Public
 
-| Screen | Route | Notes |
-| --- | --- | --- |
-| Landing | `/` | Marketing hero (creator match cards), brand logo strip, stats, three value props, footer. `LandingPage` |
-| Login | `/login` | Auth vertical slice → `users-service` |
-| Register | `/register` | Role pick (brand / creator) |
+| Screen   | Route       | Notes                                                                                                   |
+| -------- | ----------- | ------------------------------------------------------------------------------------------------------- |
+| Landing  | `/`         | Marketing hero (creator match cards), brand logo strip, stats, three value props, footer. `LandingPage` |
+| Login    | `/login`    | Auth vertical slice → `users-service`                                                                   |
+| Register | `/register` | Role pick (brand / creator)                                                                             |
 
 ### Authenticated (`<RequireAuth>`)
 
-| Screen | Route | Role | What it shows | Backend |
-| --- | --- | --- | --- | --- |
-| Dashboard | `/dashboard` | both | **Brand:** KPIs (active campaigns, creators booked, budget used, blended CPM), campaign table (spend/reach/status), activity feed. **Creator:** tiles (new invites, in negotiation, avg offer, response rate), invite cards, profile-completion to-dos, weekly schedule. | `campaign-service` (`/campaigns/mine`, `/invitations/mine`); KPIs are sample |
-| Onboarding | `/onboarding` | both | Server-driven role questionnaire | `dynamic-content-service` |
-| Profile editor | `/profile/edit` | both | Sectioned editor (Basics, Rate card, Portfolio, Platforms, Audience, Availability) + completion meter; connected-socials state | `profile-service` |
-| Discover | `/discover` | brand | Filter rail (platform, audience size, verification), search chips, creator result cards (followers, engagement, rate, verified), add-to-shortlist, message | `discovery-service` |
-| Creator profile | `/creators/:id` | both | Stat header, portfolio grid, past-campaign performance table, audience breakdown, rate-card packages | `profile-service` / `discovery-service` |
-| Campaigns | `/campaigns` | brand | Manage campaigns (draft/open/closed), publish/close | `campaign-service` |
-| Campaign builder | `/campaigns/new` | brand | Multi-step brief: Basics → Audience → Deliverables → Timeline → Shortlist; deliverable lines + rates, budget summary (rates, usage add-on, service fee, escrow hold), shortlist invite | `campaign-service` (`POST /campaigns`, publish, invite) |
-| Marketplace | `/marketplace` | creator | Browse/filter open campaigns; apply with proposal + proposed rate | `campaign-service` (`/marketplace`, `apply`) |
-| Invitations | `/invitations` | creator | Brand invite list; accept / decline | `campaign-service` (`/invitations/mine`) |
-| Offer / invitation detail | `/invitations/:id` | creator | Offer breakdown (deliverable lines, your rate vs offered, usage rights), brand-trust stats, accept / counter / decline | `campaign-service` (`respondInvitation`) |
-| Messages | `/messages`, `/messages/:id` | both | Campaign-tagged inbox + thread with composer (`MessagesLayout` shell) | `messaging-service` (poll-based) |
-| Earnings | `/earnings` | creator | Tiles (paid YTD, in escrow, available, avg per deal), payouts table with escrow states (in escrow / releasing / paid), tax & invoice documents | **No backend yet** — sample-only |
-| Collaboration board | `/collaborations-board` | both | Pipeline tracking (invited → accepted → in progress → submitted → approved → live); "Reports" for brands, "My deals" for creators | `collaboration-service` |
+| Screen                    | Route                        | Role    | What it shows                                                                                                                                                                                                                                                            | Backend                                                                      |
+| ------------------------- | ---------------------------- | ------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ---------------------------------------------------------------------------- |
+| Dashboard                 | `/dashboard`                 | both    | **Brand:** KPIs (active campaigns, creators booked, budget used, blended CPM), campaign table (spend/reach/status), activity feed. **Creator:** tiles (new invites, in negotiation, avg offer, response rate), invite cards, profile-completion to-dos, weekly schedule. | `campaign-service` (`/campaigns/mine`, `/invitations/mine`); KPIs are sample |
+| Onboarding                | `/onboarding`                | both    | Server-driven role questionnaire                                                                                                                                                                                                                                         | `dynamic-content-service`                                                    |
+| Profile editor            | `/profile/edit`              | both    | Sectioned editor (Basics, Rate card, Portfolio, Platforms, Audience, Availability) + completion meter; connected-socials state                                                                                                                                           | `profile-service`                                                            |
+| Discover                  | `/discover`                  | brand   | Filter rail (platform, audience size, verification), search chips, creator result cards (followers, engagement, rate, verified), add-to-shortlist, message                                                                                                               | `discovery-service`                                                          |
+| Creator profile           | `/creators/:id`              | both    | Stat header, portfolio grid, past-campaign performance table, audience breakdown, rate-card packages                                                                                                                                                                     | `profile-service` / `discovery-service`                                      |
+| Campaigns                 | `/campaigns`                 | brand   | Manage campaigns (draft/open/closed), publish/close                                                                                                                                                                                                                      | `campaign-service`                                                           |
+| Campaign builder          | `/campaigns/new`             | brand   | Multi-step brief: Basics → Audience → Deliverables → Timeline → Shortlist; deliverable lines + rates, budget summary (rates, usage add-on, service fee, escrow hold), shortlist invite                                                                                   | `campaign-service` (`POST /campaigns`, publish, invite)                      |
+| Marketplace               | `/marketplace`               | creator | Browse/filter open campaigns; apply with proposal + proposed rate                                                                                                                                                                                                        | `campaign-service` (`/marketplace`, `apply`)                                 |
+| Invitations               | `/invitations`               | creator | Brand invite list; accept / decline                                                                                                                                                                                                                                      | `campaign-service` (`/invitations/mine`)                                     |
+| Offer / invitation detail | `/invitations/:id`           | creator | Offer breakdown (deliverable lines, your rate vs offered, usage rights), brand-trust stats, accept / counter / decline                                                                                                                                                   | `campaign-service` (`respondInvitation`)                                     |
+| Messages                  | `/messages`, `/messages/:id` | both    | Campaign-tagged inbox + thread with composer (`MessagesLayout` shell)                                                                                                                                                                                                    | `messaging-service` (poll-based)                                             |
+| Earnings                  | `/earnings`                  | creator | Tiles (paid YTD, in escrow, available, avg per deal), payouts table with escrow states (in escrow / releasing / paid), tax & invoice documents                                                                                                                           | **No backend yet** — sample-only                                             |
+| Collaboration board       | `/collaborations-board`      | both    | Pipeline tracking (invited → accepted → in progress → submitted → approved → live); "Reports" for brands, "My deals" for creators                                                                                                                                        | `collaboration-service`                                                      |
 
 ---
 

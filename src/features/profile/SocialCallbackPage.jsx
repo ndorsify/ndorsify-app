@@ -52,7 +52,9 @@ export default function SocialCallbackPage() {
             <p className="nd-error">{error}</p>
             <button
               className="nd-btn nd-btn--primary nd-btn--sm"
-              onClick={() => navigate(PAGE_ROUTES.PROFILE_EDIT, { replace: true })}
+              onClick={() =>
+                navigate(PAGE_ROUTES.PROFILE_EDIT, { replace: true })
+              }
               type="button"
             >
               Back to profile

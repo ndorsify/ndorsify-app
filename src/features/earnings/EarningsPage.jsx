@@ -8,8 +8,8 @@ const stateVariant = (state) =>
   state === 'paid'
     ? 'nd-pill--success'
     : state === 'releasing'
-    ? 'nd-pill--accent'
-    : 'nd-pill--warn'
+      ? 'nd-pill--accent'
+      : 'nd-pill--warn'
 
 export default function EarningsPage() {
   const { data: collabs = [], isLoading } = useMyCollaborationsQuery()
@@ -25,8 +25,8 @@ export default function EarningsPage() {
       c.status === 'completed'
         ? 'paid'
         : c.status === 'live'
-        ? 'releasing'
-        : 'escrow'
+          ? 'releasing'
+          : 'escrow'
   }))
   const payouts = live.length ? live : samplePayouts
   const usingSample = live.length === 0
