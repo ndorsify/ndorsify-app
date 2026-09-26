@@ -16,6 +16,7 @@ import { authApi } from '../features/auth/authApi'
 import { campaignApi } from '../features/campaigns/campaignApi'
 import { collaborationApi } from '../features/collaborations/collaborationApi'
 import { discoveryApi } from '../features/discovery/discoveryApi'
+import { mediaApi } from '../features/media/mediaApi'
 import { messagingApi } from '../features/messaging/messagingApi'
 import { onboardingApi } from '../features/onboarding/onboardingApi'
 import { profileApi } from '../features/profile/profileApi'
@@ -33,6 +34,7 @@ const rootReducer = combineReducers({
   [profileApi.reducerPath]: profileApi.reducer,
   [onboardingApi.reducerPath]: onboardingApi.reducer,
   [discoveryApi.reducerPath]: discoveryApi.reducer,
+  [mediaApi.reducerPath]: mediaApi.reducer,
   [messagingApi.reducerPath]: messagingApi.reducer,
   [campaignApi.reducerPath]: campaignApi.reducer,
   [collaborationApi.reducerPath]: collaborationApi.reducer
@@ -50,6 +52,7 @@ export const store = configureStore({
       profileApi.middleware,
       onboardingApi.middleware,
       discoveryApi.middleware,
+      mediaApi.middleware,
       messagingApi.middleware,
       campaignApi.middleware,
       collaborationApi.middleware
