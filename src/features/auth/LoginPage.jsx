@@ -4,6 +4,7 @@ import { Link, useLocation, useNavigate } from 'react-router-dom'
 import './auth.css'
 import { apiErrorMessage } from '../../lib/errors'
 import { PAGE_ROUTES } from '../../routes'
+import GoogleButton from './GoogleButton'
 import { useLoginMutation } from './authApi'
 
 const VALUE_POINTS = [
@@ -62,6 +63,8 @@ export default function LoginPage() {
             <h1 className="nd-h1">Welcome back</h1>
             <p className="nd-sub">Sign in to your marketplace account.</p>
           </div>
+          <GoogleButton label="Continue with Google" />
+          <div className="auth__or">or</div>
           <form className="auth__form" onSubmit={onSubmit}>
             <label className="nd-field">
               <span>Email</span>
@@ -106,17 +109,6 @@ export default function LoginPage() {
             >
               {isLoading ? 'Signing in…' : 'Sign in'}
             </button>
-            <div className="auth__or">
-              <span>OR</span>
-            </div>
-            <div className="auth__oauth-row">
-              <button type="button" className="nd-btn nd-btn--secondary">
-                Continue with Google
-              </button>
-              <button type="button" className="nd-btn nd-btn--secondary">
-                Continue with SSO
-              </button>
-            </div>
           </form>
           <p className="auth__links">
             New to Ndorsify?{' '}

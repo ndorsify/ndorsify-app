@@ -6,6 +6,7 @@ import RequireAuth from './routes/RequireAuth'
 import RequireRole from './routes/RequireRole'
 import { selectIsAuthed } from './features/auth/authSlice'
 import LoginPage from './features/auth/LoginPage'
+import OAuthCallbackPage from './features/auth/OAuthCallbackPage'
 import RegisterPage from './features/auth/RegisterPage'
 import LandingPage from './features/home/LandingPage'
 import HomePage from './features/home/HomePage'
@@ -47,6 +48,10 @@ function App() {
         {/* Public */}
         <Route path={PAGE_ROUTES.HOME} element={<RootRoute />} />
         <Route path={PAGE_ROUTES.LOGIN} element={<LoginPage />} />
+        <Route
+          path={PAGE_ROUTES.OAUTH_CALLBACK}
+          element={<OAuthCallbackPage />}
+        />
         <Route path={PAGE_ROUTES.REGISTER} element={<RegisterPage />} />
         {/* A provider redirect lands here after a full page load, so it can't
             sit behind RequireAuth — see SocialCallbackPage. */}

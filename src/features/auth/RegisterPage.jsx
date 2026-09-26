@@ -4,6 +4,7 @@ import { Link, useLocation, useNavigate } from 'react-router-dom'
 import './auth.css'
 import { apiErrorMessage } from '../../lib/errors'
 import { PAGE_ROUTES } from '../../routes'
+import GoogleButton from './GoogleButton'
 import { useRegisterMutation } from './authApi'
 
 // Exact copy from the Ndorsify design system (artboard 3a).
@@ -115,6 +116,8 @@ export default function RegisterPage() {
             ))}
           </div>
 
+          <GoogleButton label="Sign up with Google" />
+          <div className="auth__or">or</div>
           <form className="auth__form" onSubmit={onSubmit}>
             <div className={role === 'brand' ? 'auth__fields2' : ''}>
               <label className="nd-field">
@@ -175,17 +178,6 @@ export default function RegisterPage() {
             >
               {isLoading ? 'Creating…' : `Create ${role} account`}
             </button>
-            <div className="auth__or">
-              <span>OR</span>
-            </div>
-            <div className="auth__oauth-row">
-              <button type="button" className="nd-btn nd-btn--secondary">
-                Continue with Google
-              </button>
-              <button type="button" className="nd-btn nd-btn--secondary">
-                Continue with SSO
-              </button>
-            </div>
             <p className="auth__terms">
               By continuing you agree to the Terms and the Creator Agreement.
             </p>
