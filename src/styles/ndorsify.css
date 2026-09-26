@@ -93,7 +93,9 @@
 }
 .nd-card--accent {
   border-color: var(--accent);
-  box-shadow: var(--shadow-card), 0 14px 30px rgba(87, 79, 224, 0.12);
+  box-shadow:
+    var(--shadow-card),
+    0 14px 30px rgba(87, 79, 224, 0.12);
 }
 .nd-card--dark {
   background: var(--ink);
@@ -128,7 +130,10 @@
   cursor: pointer;
   text-decoration: none;
   line-height: 1;
-  transition: background 0.15s ease, transform 0.05s ease, box-shadow 0.15s ease;
+  transition:
+    background 0.15s ease,
+    transform 0.05s ease,
+    box-shadow 0.15s ease;
   white-space: nowrap;
 }
 .nd-btn:active {

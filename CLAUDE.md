@@ -18,34 +18,36 @@ inside the card is the actual full-bleed web window** — it must fill the viewp
 edge to edge (no centered floating card, no outer gutter/border/radius/shadow)
 unless the design explicitly shows an inner card as part of the UI.
 
-Match everything *inside* the frame faithfully — layout, spacing, colours, copy,
+Match everything _inside_ the frame faithfully — layout, spacing, colours, copy,
 component structure — using the shared design system in
 [`src/styles/ndorsify.css`](src/styles/ndorsify.css) (`nd-*` classes) and
 [`src/components/common/ds.js`](src/components/common/ds.js).
 
 ## Toolchain
 
-Node (works on Node 24 / npm 11). Dependencies are installed with `npm install`.
+Node 24 LTS (pinned in `.nvmrc`, enforced by `engines`). Dependencies are
+installed with `npm install`.
 
 ## Commands
 
 ```bash
 npm install                       # install dependencies
 npm start                         # dev server on http://localhost:3000
-npm run build                     # production build to build/
-npm test                          # Jest in interactive watch mode
-CI=true npm test                  # run all tests once (non-watch)
-npm test -- --watchAll=false -t "renders learn react"   # run a single test by name
+npm run build                     # production build to dist/
+npm test                          # Vitest, single run
+npm run test:watch                # Vitest in watch mode
+npm test -- -t "adds a package"   # run a single test by name
 npm run check                     # prettier --check .   (format check)
 npm run format                    # prettier --write .   (auto-format)
 ```
 
 ## Gotchas
 
-- **OpenSSL error on `npm start`/`build`** — `react-scripts` 4 on modern Node can
-  throw `digital envelope routines::unsupported`. Prefix the command with
-  `NODE_OPTIONS=--openssl-legacy-provider`.
-- `npm run eject` is a one-way operation — do not run it without an explicit ask.
+- **JSX lives in `.jsx` files.** Vite picks its parser by extension, so a
+  component written into a `.js` file fails to build. Plain modules (api
+  slices, helpers) stay `.js`.
+- **Env vars keep the `REACT_APP_` prefix** (`envPrefix` in `vite.config.js`),
+  read through `import.meta.env`, not `process.env`.
 
 ## Formatting
 

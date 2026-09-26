@@ -38,8 +38,8 @@ const statusVariant = (state) =>
   state === 'live' || state === 'open'
     ? 'nd-pill--success'
     : state === 'review' || state === 'draft'
-    ? 'nd-pill--warn'
-    : 'nd-pill--outline'
+      ? 'nd-pill--warn'
+      : 'nd-pill--outline'
 
 /* ------------------------------------------------------------------ Brand */
 function BrandDashboard({ name }) {

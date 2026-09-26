@@ -113,8 +113,8 @@ export default function OnboardingPage() {
               i + 1 === step
                 ? 'ob__pip is-current'
                 : i + 1 < step
-                ? 'ob__pip is-done'
-                : 'ob__pip'
+                  ? 'ob__pip is-done'
+                  : 'ob__pip'
             }
           >
             <span className="ob__pip-dot">{i + 1 < step ? '✓' : i + 1}</span>
@@ -348,8 +348,8 @@ export default function OnboardingPage() {
                     c.done
                       ? 'nd-check is-done'
                       : c.current
-                      ? 'nd-check is-current'
-                      : 'nd-check'
+                        ? 'nd-check is-current'
+                        : 'nd-check'
                   }
                 >
                   {c.done ? '✓' : ''}

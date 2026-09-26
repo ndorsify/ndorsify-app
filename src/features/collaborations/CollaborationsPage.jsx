@@ -247,9 +247,10 @@ function TimelinePanel({ collaborationId, deliverables }) {
                 “{e.detail.note}”
               </span>
             )}
-            {e.kind === 'submission' && (e.detail.file_refs || []).length > 0 && (
-              <SubmissionFiles fileRefs={e.detail.file_refs} />
-            )}
+            {e.kind === 'submission' &&
+              (e.detail.file_refs || []).length > 0 && (
+                <SubmissionFiles fileRefs={e.detail.file_refs} />
+              )}
             {e.kind === 'review' && e.detail.feedback && (
               <span className="nd-muted" style={{ fontSize: '0.76rem' }}>
                 “{e.detail.feedback}”
