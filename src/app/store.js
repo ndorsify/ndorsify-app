@@ -9,7 +9,10 @@ import {
   persistReducer,
   persistStore
 } from 'redux-persist'
-import storage from 'redux-persist/lib/storage'
+// The ESM build, deliberately: package.json points `module` at es/, so the
+// CJS deep path (lib/storage) comes back as a { default } namespace under
+// Vite and `storage.getItem` is undefined — a blank page at boot.
+import storage from 'redux-persist/es/storage'
 
 import authReducer from '../features/auth/authSlice'
 import { authApi } from '../features/auth/authApi'
