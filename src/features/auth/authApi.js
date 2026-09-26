@@ -12,15 +12,23 @@ export const authApi = createApi({
     register: builder.mutation({
       query: (body) => ({ url: '/auth/register', method: 'POST', body }),
       async onQueryStarted(_arg, { dispatch, queryFulfilled }) {
-        const { data } = await queryFulfilled // {user, tokens, verification_token?}
-        dispatch(credentialsReceived({ ...data.tokens, user: data.user }))
+        try {
+          const { data } = await queryFulfilled // {user, tokens, verification_token?}
+          dispatch(credentialsReceived({ ...data.tokens, user: data.user }))
+        } catch {
+          /* surfaced to the caller by unwrap(); nothing to store */
+        }
       }
     }),
     login: builder.mutation({
       query: (body) => ({ url: '/auth/login', method: 'POST', body }),
       async onQueryStarted(_arg, { dispatch, queryFulfilled }) {
-        const { data } = await queryFulfilled // TokenPair
-        dispatch(credentialsReceived(data))
+        try {
+          const { data } = await queryFulfilled // TokenPair
+          dispatch(credentialsReceived(data))
+        } catch {
+          /* surfaced to the caller by unwrap(); nothing to store */
+        }
       }
     }),
     me: builder.query({
@@ -31,6 +39,40 @@ export const authApi = createApi({
           dispatch(userLoaded(data))
         } catch {
           /* handled by baseQuery reauth / route guard */
+        }
+      }
+    }),
+    // Google sends the browser back to /oauth/callback with a one-time
+    // reference; these trade it for a real session. (The sign-in itself starts
+    // with a plain link to users-service, not a fetch — the provider needs a
+    // top-level navigation.)
+    oauthExchange: builder.mutation({
+      query: (handoff) => ({
+        url: '/auth/oauth/exchange',
+        method: 'POST',
+        body: { handoff }
+      }),
+      async onQueryStarted(_arg, { dispatch, queryFulfilled }) {
+        try {
+          const { data } = await queryFulfilled // TokenPair
+          dispatch(credentialsReceived(data))
+        } catch {
+          /* surfaced to the caller by unwrap(); nothing to store */
+        }
+      }
+    }),
+    oauthComplete: builder.mutation({
+      query: ({ signup, role }) => ({
+        url: '/auth/oauth/complete',
+        method: 'POST',
+        body: { signup, role }
+      }),
+      async onQueryStarted(_arg, { dispatch, queryFulfilled }) {
+        try {
+          const { data } = await queryFulfilled // {user, tokens}
+          dispatch(credentialsReceived({ ...data.tokens, user: data.user }))
+        } catch {
+          /* surfaced to the caller by unwrap(); nothing to store */
         }
       }
     }),
@@ -47,6 +89,8 @@ export const {
   useRegisterMutation,
   useLoginMutation,
   useMeQuery,
+  useOauthExchangeMutation,
+  useOauthCompleteMutation,
   useForgotPasswordMutation,
   useLogoutMutation
 } = authApi
